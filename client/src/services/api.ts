@@ -13,13 +13,36 @@ const api = axios.create({
 });
 
 export const createCampaign = async (campaign: Campaign): Promise<Campaign> => {
-  const response = await api.post<{ campaign: Campaign; message: string }>('/campaigns', campaign);
-  return response.data.campaign;
+  try {
+    const response = await api.post<{ campaign: Campaign; message: string }>('/campaigns', campaign);
+    return response.data.campaign;
+  } catch (error: any) {
+    if (error.response) {
+      // Server responded with error
+      throw new Error(error.response.data?.error || error.response.data?.message || 'Failed to create campaign');
+    } else if (error.request) {
+      // Request made but no response
+      throw new Error('No response from server. Please check your connection.');
+    } else {
+      // Something else happened
+      throw new Error(error.message || 'An unexpected error occurred');
+    }
+  }
 };
 
 export const getAllCampaigns = async (): Promise<Campaign[]> => {
-  const response = await api.get<{ campaigns: Campaign[] }>('/campaigns');
-  return response.data.campaigns;
+  try {
+    const response = await api.get<{ campaigns: Campaign[] }>('/campaigns');
+    return response.data.campaigns;
+  } catch (error: any) {
+    if (error.response) {
+      throw new Error(error.response.data?.error || error.response.data?.message || 'Failed to fetch campaigns');
+    } else if (error.request) {
+      throw new Error('No response from server. Please check your connection.');
+    } else {
+      throw new Error(error.message || 'An unexpected error occurred');
+    }
+  }
 };
 
 

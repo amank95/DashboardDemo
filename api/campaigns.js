@@ -1,5 +1,5 @@
 const connectDB = require('./db');
-const Campaign = require('../server/models/Campaign');
+const Campaign = require('./models/Campaign');
 
 module.exports = async (req, res) => {
   // Set CORS headers
@@ -19,7 +19,9 @@ module.exports = async (req, res) => {
 
   try {
     // Connect to MongoDB
+    console.log('Attempting to connect to MongoDB...');
     await connectDB();
+    console.log('MongoDB connection established');
 
     if (req.method === 'POST') {
       // Create campaign
@@ -102,9 +104,17 @@ module.exports = async (req, res) => {
     }
   } catch (error) {
     console.error('Error:', error);
+    console.error('Error stack:', error.stack);
+    
+    // Provide more detailed error information
+    const errorMessage = error.message || 'Internal server error';
+    const errorDetails = process.env.NODE_ENV === 'production' 
+      ? 'An error occurred processing your request'
+      : errorMessage;
+    
     return res.status(500).json({ 
-      error: 'Internal server error',
-      details: error.message 
+      error: errorDetails,
+      message: errorMessage
     });
   }
 };

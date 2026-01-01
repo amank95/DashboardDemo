@@ -41,8 +41,12 @@ const Dashboard: React.FC = () => {
     try {
       const data = await getAllCampaigns();
       setCampaigns(data);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error fetching campaigns:', error);
+      // Only show error message if it's a user-facing error
+      if (error.message && error.message !== 'Failed to fetch campaigns') {
+        setErrorMessage(error.message);
+      }
     }
   };
 
@@ -157,7 +161,10 @@ const Dashboard: React.FC = () => {
       // Refresh campaigns list
       await fetchCampaigns();
     } catch (error: any) {
-      setErrorMessage(error.response?.data?.error || 'Failed to create campaign');
+      // Ensure we always set a string, not an object
+      const errorMsg = error.message || error.response?.data?.error || error.response?.data?.message || 'Failed to create campaign';
+      setErrorMessage(typeof errorMsg === 'string' ? errorMsg : 'An unexpected error occurred');
+      console.error('Campaign creation error:', error);
     } finally {
       setLoading(false);
     }
