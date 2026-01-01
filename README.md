@@ -154,6 +154,25 @@ Get all campaigns.
 - No external marketplace API integrations
 - This is purely a configuration input panel
 
+## Deployment to Vercel
+
+This application is configured for deployment on Vercel. See [VERCEL_DEPLOYMENT.md](./VERCEL_DEPLOYMENT.md) for detailed deployment instructions.
+
+### Quick Deploy Steps:
+
+1. **Set up MongoDB Atlas** (or use your MongoDB instance)
+2. **Push code to Git** (GitHub, GitLab, or Bitbucket)
+3. **Import to Vercel:**
+   - Go to [vercel.com](https://vercel.com)
+   - Import your repository
+   - Set environment variable: `MONGODB_URI`
+   - Deploy!
+
+The application uses:
+- **Frontend:** React app built and served as static files
+- **Backend:** Serverless functions in `/api` folder
+- **Database:** MongoDB (connection string from environment variables)
+
 ## License
 
 ISC

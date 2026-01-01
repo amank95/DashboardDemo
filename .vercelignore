@@ -1,0 +1,7 @@
+node_modules
+server
+.git
+.env.local
+*.log
+package-lock.json
+client/package-lock.json
