@@ -1,15 +1,15 @@
 import React from 'react';
-import Dashboard from './components/Dashboard';
+import CreateCampaign from './components/CreateCampaign';
 
 function App() {
   return (
-    <div className="min-h-screen bg-gray-50">
-      <Dashboard />
-    </div>
+    <CreateCampaign />
   );
 }
 
 export default App;
+
+
 
 
 

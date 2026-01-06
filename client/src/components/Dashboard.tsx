@@ -24,7 +24,11 @@ const Dashboard: React.FC = () => {
       },
       dayType: 'Weekday',
       keywords: [],
-      categoryMatch: false
+      negativeKeywords: [],
+      categoryMatch: false,
+      enableKeywords: true,
+      enableCategoryTargeting: false,
+      categories: []
     }
   });
 
@@ -90,16 +94,16 @@ const Dashboard: React.FC = () => {
       ...prev,
       targeting: {
         ...prev.targeting,
-        keywords
+        keywords: keywords.map(text => ({ text, bidBooster: false }))
       }
     }));
   };
 
   const validateForm = (): boolean => {
     // Section A validation
-    if (!formData.productId.trim() || !formData.productName.trim() || 
-        !formData.category.trim() || !formData.brand.trim() ||
-        !formData.currentRank || !formData.targetRank) {
+    if (!formData.productId.trim() || !formData.productName.trim() ||
+      !formData.category.trim() || !formData.brand.trim() ||
+      !formData.currentRank || !formData.targetRank) {
       setErrorMessage('Please fill all required fields in Section A');
       return false;
     }
@@ -112,8 +116,8 @@ const Dashboard: React.FC = () => {
 
     // Section C validation
     if (!formData.targeting.city.trim() || !formData.targeting.pincode ||
-        !formData.targeting.timeSlot.start || !formData.targeting.timeSlot.end ||
-        formData.targeting.keywords.length === 0) {
+      !formData.targeting.timeSlot.start || !formData.targeting.timeSlot.end ||
+      formData.targeting.keywords.length === 0) {
       setErrorMessage('Please fill all required fields in Targeting Rules');
       return false;
     }
@@ -135,7 +139,7 @@ const Dashboard: React.FC = () => {
     try {
       await createCampaign(formData as Campaign);
       setSuccessMessage('Campaign created successfully!');
-      
+
       // Reset form
       setFormData({
         productId: '',
@@ -154,7 +158,11 @@ const Dashboard: React.FC = () => {
           },
           dayType: 'Weekday',
           keywords: [],
-          categoryMatch: false
+          negativeKeywords: [],
+          categoryMatch: false,
+          enableKeywords: true,
+          enableCategoryTargeting: false,
+          categories: []
         }
       });
 

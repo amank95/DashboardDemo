@@ -7,10 +7,10 @@ interface TargetingRulesProps {
   onKeywordsChange: (keywords: string[]) => void;
 }
 
-const TargetingRules: React.FC<TargetingRulesProps> = ({ 
-  targeting, 
-  onChange, 
-  onKeywordsChange 
+const TargetingRules: React.FC<TargetingRulesProps> = ({
+  targeting,
+  onChange,
+  onKeywordsChange
 }) => {
   const handleKeywordsInput = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
@@ -21,7 +21,7 @@ const TargetingRules: React.FC<TargetingRulesProps> = ({
     onKeywordsChange(keywords);
   };
 
-  const keywordsString = targeting.keywords.join(', ');
+  const keywordsString = targeting.keywords.map(k => (typeof k === 'string' ? k : k.text)).join(', ');
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -147,6 +147,8 @@ const TargetingRules: React.FC<TargetingRulesProps> = ({
 };
 
 export default TargetingRules;
+
+
 
 
 
