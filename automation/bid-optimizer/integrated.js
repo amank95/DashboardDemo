@@ -168,9 +168,28 @@ async function main() {
     const args = process.argv.slice(2);
     const dryRun = args.includes('--dry-run') || args.includes('-d');
 
+    // Parse command line arguments
+    const getArg = (name) => {
+        const idx = args.findIndex(a => a.startsWith(`--${name}=`));
+        if (idx !== -1) return parseInt(args[idx].split('=')[1]);
+        const idx2 = args.indexOf(`--${name}`);
+        if (idx2 !== -1 && args[idx2 + 1]) return parseInt(args[idx2 + 1]);
+        return null;
+    };
+
+    const startBid = getArg('start-bid') || getArg('start');
+    const minBid = getArg('min-bid') || getArg('min');
+    const maxBid = getArg('max-bid') || getArg('max');
+
     console.log('╔════════════════════════════════════════════════════════════╗');
     console.log('║     INTEGRATED BID OPTIMIZER + CAMPAIGN AUTOMATION         ║');
     console.log('╚════════════════════════════════════════════════════════════╝\n');
+
+    console.log('📋 Usage: node integrated.js [options]');
+    console.log('   --dry-run, -d     Run without browser automation');
+    console.log('   --start-bid=N     Set starting bid (default: midpoint)');
+    console.log('   --min-bid=N       Set minimum bid (default: 100)');
+    console.log('   --max-bid=N       Set maximum bid (default: 50000)\n');
 
     if (dryRun) {
         console.log('🔸 Running in DRY RUN mode (no actual browser automation)\n');
@@ -178,9 +197,26 @@ async function main() {
         console.log('🔹 Running in LIVE mode (will open browser and submit campaigns)\n');
     }
 
-    const optimizer = new IntegratedBidOptimizer({
-        RANKING_CHECK_INTERVAL: dryRun ? 100 : 2000  // Faster for dry run
-    });
+    // Build config with custom bid range
+    const optimizerConfig = {
+        RANKING_CHECK_INTERVAL: dryRun ? 100 : 2000
+    };
+    if (minBid) optimizerConfig.MIN_BID = minBid;
+    if (maxBid) optimizerConfig.MAX_BID = maxBid;
+
+    const optimizer = new IntegratedBidOptimizer(optimizerConfig);
+
+    // Override starting bid if provided (keeps full range, just changes first bid)
+    if (startBid) {
+        // Don't limit range - just set the starting point
+        // Binary search will expand from there
+        console.log(`💵 Custom starting bid: ₹${startBid}`);
+        console.log(`   Full search range: ₹${optimizer.config.MIN_BID} - ₹${optimizer.config.MAX_BID}`);
+        console.log(`   (Will adjust up/down based on rank results)\n`);
+
+        // Override the getInitialBid method to return custom start
+        optimizer.binarySearch.getInitialBid = () => startBid;
+    }
 
     try {
         const result = await optimizer.optimize({
@@ -203,12 +239,13 @@ async function main() {
 
             // Targeting
             keywordTargeting: true,
-            keywords: ['running shoes', 'nike', 'sports'],
+            keywords: ['birthday', 'balloon'],  // Use actual suggested keywords
             categoryTargeting: true,
 
-            // Budget (will be overridden by optimizer)
+            // Budget
             budgetStrategy: 'overall',
-            budgetAmount: 10000  // Starting point, will be adjusted
+            overallBudget: 50000,       // Fixed total campaign budget
+            budgetAmount: 10000         // Keyword bid (will be optimized)
         }, dryRun);
 
         console.log('\n📋 Final Result:');
