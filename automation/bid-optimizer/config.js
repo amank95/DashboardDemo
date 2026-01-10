@@ -27,8 +27,8 @@ module.exports = {
     MONGODB_URI: process.env.MONGODB_URI || 'mongodb://localhost:27017/ad-rank-controller',
 
     // Browser settings
-    HEADLESS: true,  // Run browser in headless mode for automation
-    SLOW_MO: 50,     // Milliseconds between actions
+    HEADLESS: false,  // Run browser in headless mode for automation
+    SLOW_MO: 500,     // Milliseconds between actions
 
     // Screenshot settings
     SCREENSHOT_DIR: require('path').join(__dirname, '../screenshots')

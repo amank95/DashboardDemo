@@ -127,7 +127,7 @@ class IntegratedBidOptimizer {
                         campaignName: `${campaignConfig.campaignName || 'Optimized'} - FINAL ₹${optimalBid}`
                     }, {
                         headless: false,  // Show final submission
-                        slowMo: 100
+                        slowMo: 500
                     });
                     console.log('✅ Final campaign submitted!');
                 } catch (error) {

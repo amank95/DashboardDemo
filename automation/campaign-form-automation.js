@@ -281,7 +281,8 @@ async function fillCampaignForm(config, options = {}) {
         await delay(500);
 
         // Select keywords from suggested list
-        // The suggested keywords are clickable elements like "birthday", "balloon", etc.
+        // IMPORTANT: Keywords are <button> elements with React onClick handlers
+        // Must use Playwright's click method to trigger React synthetic events
         const keywordsToSelect = config.keywords.length > 0
             ? config.keywords
             : ['birthday', 'balloon']; // Default fallback keywords
@@ -290,52 +291,99 @@ async function fillCampaignForm(config, options = {}) {
 
         for (const keyword of keywordsToSelect) {
             try {
-                // Find clickable keyword elements in the suggested keywords section
-                // These are typically text elements with the keyword name
-                const keywordLocator = page.locator(`div:has-text("${keyword}"), span:has-text("${keyword}"), p:has-text("${keyword}")`).first();
+                console.log(`   🔍 Looking for keyword button: ${keyword}`);
 
-                if (await keywordLocator.isVisible({ timeout: 1000 })) {
-                    await keywordLocator.click();
-                    console.log(`   ✓ Selected keyword: ${keyword}`);
-                    keywordsSelected++;
-                    await delay(500);
+                // The keyword cards are <button> elements with text content
+                // Use Playwright locator to find button containing the keyword text
+                // Look for buttons that contain the keyword and "(searches)" text
+                const keywordButton = page.locator(`button:has-text("${keyword}"):has-text("searches")`).first();
+
+                if (await keywordButton.isVisible({ timeout: 2000 })) {
+                    // Check if button is disabled (already selected)
+                    const isDisabled = await keywordButton.isDisabled();
+                    if (!isDisabled) {
+                        await keywordButton.scrollIntoViewIfNeeded();
+                        await keywordButton.click();
+                        console.log(`   ✓ Clicked keyword button: ${keyword}`);
+                        keywordsSelected++;
+                        await delay(1000); // Wait for React state to update
+                    } else {
+                        console.log(`   ⏭ Keyword already selected: ${keyword}`);
+                    }
                 } else {
-                    console.log(`   ⚠ Keyword not visible: ${keyword}`);
+                    // Try alternative selector - button with exact keyword text
+                    const altButton = page.locator(`button:has(div:text-is("${keyword}"))`).first();
+                    if (await altButton.isVisible({ timeout: 500 })) {
+                        const isDisabled = await altButton.isDisabled();
+                        if (!isDisabled) {
+                            await altButton.click();
+                            console.log(`   ✓ Clicked keyword button (alt): ${keyword}`);
+                            keywordsSelected++;
+                            await delay(1000);
+                        }
+                    } else {
+                        console.log(`   ⚠ Keyword button not found: ${keyword}`);
+                    }
                 }
             } catch (e) {
-                console.log(`   ⚠ Could not select keyword: ${keyword}`);
+                console.log(`   ⚠ Could not select keyword: ${keyword} - ${e.message}`);
             }
         }
 
-        // If no keywords were selected, try clicking any available suggested keywords
+        // If no keywords were selected, try clicking the first available keyword buttons
         if (keywordsSelected === 0) {
-            console.log('   ⚠ No specified keywords found, trying default keywords...');
-            const defaultKeywords = ['birthday', 'balloon', 'christmas decoration'];
-            for (const kw of defaultKeywords) {
+            console.log('   ⚠ No specified keywords found, trying to click first available buttons...');
+
+            // Find all keyword buttons (buttons that contain "searches" text)
+            const keywordButtons = page.locator('button:has-text("searches")');
+            const count = await keywordButtons.count();
+            console.log(`   📊 Found ${count} keyword buttons`);
+
+            for (let i = 0; i < Math.min(count, 2); i++) {
                 try {
-                    const kwElement = page.locator(`text="${kw}"`).first();
-                    if (await kwElement.isVisible({ timeout: 500 })) {
-                        await kwElement.click();
-                        console.log(`   ✓ Selected default keyword: ${kw}`);
+                    const btn = keywordButtons.nth(i);
+                    if (await btn.isVisible() && !await btn.isDisabled()) {
+                        await btn.click();
+                        console.log(`   ✓ Clicked keyword button #${i + 1}`);
                         keywordsSelected++;
-                        await delay(500);
-                        if (keywordsSelected >= 2) break; // Select up to 2 default keywords
+                        await delay(1000);
                     }
                 } catch (e) { }
             }
         }
 
-        // Wait for selected keywords section to update
-        await delay(1000);
+        // Wait for selected keywords section to fully update
+        await delay(2000);
+
+        // Check how many bid inputs are now available
+        const bidInputCount = await page.locator('input[placeholder="Enter..."]').count();
+        console.log(`   📊 Bid inputs available after selection: ${bidInputCount}`);
 
         // Now enter bid amount for each selected keyword
-        // The bid input has placeholder="Enter..."
+        // The bid input is a number input inside the Selected keywords section
+        // It has placeholder="Enter..." and is wrapped in a div with ₹ prefix
         if (config.budgetAmount) {
-            console.log(`   💰 Setting bid amount: ₹${config.budgetAmount}`);
+            console.log(`   💰 Target bid amount: ₹${config.budgetAmount}`);
 
-            // Find all bid input fields
-            const bidInputs = page.locator('input[placeholder="Enter..."]');
+            // Try multiple selectors for bid inputs
+            // Selector 1: input with placeholder="Enter..."
+            let bidInputs = page.locator('input[placeholder="Enter..."]');
             let bidCount = await bidInputs.count();
+
+            // Selector 2: If not found, try number inputs in the Selected keywords section
+            if (bidCount === 0) {
+                console.log('   🔍 Trying alternative selector for bid inputs...');
+                bidInputs = page.locator('input[type="number"]');
+                bidCount = await bidInputs.count();
+            }
+
+            // Selector 3: Look for inputs near the ₹ symbol
+            if (bidCount === 0) {
+                console.log('   🔍 Trying to find inputs near currency symbol...');
+                bidInputs = page.locator('div.relative.w-full input');
+                bidCount = await bidInputs.count();
+            }
+
             console.log(`   📊 Found ${bidCount} bid input field(s)`);
 
             if (bidCount > 0) {
@@ -344,12 +392,28 @@ async function fillCampaignForm(config, options = {}) {
                         const bidInput = bidInputs.nth(i);
                         if (await bidInput.isVisible({ timeout: 500 })) {
                             await bidInput.scrollIntoViewIfNeeded();
+
+                            // Read current bid value before changing (per-iteration check)
+                            const currentBidValue = await bidInput.inputValue();
+                            if (currentBidValue) {
+                                console.log(`   📖 Keyword #${i + 1} current bid: ₹${currentBidValue}`);
+                            }
+
+                            // Clear and set new bid value
                             await bidInput.click();
                             await bidInput.fill('');
                             await delay(100);
                             await bidInput.type(String(config.budgetAmount));
-                            console.log(`   ✓ Set keyword bid #${i + 1}: ₹${config.budgetAmount}`);
+
+                            // Verify the bid was set correctly (per-iteration verification)
                             await delay(200);
+                            const newBidValue = await bidInput.inputValue();
+                            if (newBidValue === String(config.budgetAmount)) {
+                                console.log(`   ✓ Keyword bid #${i + 1}: ₹${currentBidValue || '0'} → ₹${config.budgetAmount} (verified)`);
+                            } else {
+                                console.log(`   ⚠ Keyword bid #${i + 1}: Set to ₹${config.budgetAmount}, but value shows ₹${newBidValue}`);
+                            }
+                            await delay(100);
                         }
                     } catch (e) {
                         console.log(`   ⚠ Could not set bid for keyword #${i + 1}: ${e.message}`);
@@ -357,6 +421,8 @@ async function fillCampaignForm(config, options = {}) {
                 }
             } else {
                 console.log('   ⚠ No bid input fields found - keywords may not be selected');
+                // Take a debug screenshot
+                await takeScreenshot(page, 'Step4_Debug_NoBidInputs');
             }
         }
 
@@ -387,13 +453,14 @@ async function fillCampaignForm(config, options = {}) {
 
         await delay(500);
 
-        // Budget Amount - use overallBudget (not the keyword bid amount)
-        const overallBudget = config.overallBudget || config.budgetAmount || 50000;
+        // Budget Amount - ALWAYS use overallBudget (fixed), never the keyword bid amount
+        // The overall campaign budget stays constant, only keyword bids change per iteration
+        const overallBudget = config.overallBudget || 50000;  // Fixed budget, never uses budgetAmount
         const budgetInput = page.locator('input[placeholder*="Budget"], input[type="number"]').first();
         await budgetInput.click();
         await budgetInput.fill(overallBudget.toString());
-        console.log(`   ✓ Overall Budget: ₹${overallBudget}`);
-        console.log(`   📝 (Keyword bids set separately in Step 4)`);
+        console.log(`   ✓ Overall Budget: ₹${overallBudget} (fixed)`);
+        console.log(`   📝 Note: Only keyword bids change per iteration, overall budget stays at ₹${overallBudget}`);
 
         // Take screenshot of Step 5 before submitting
         await page.evaluate(() => window.scrollTo(0, 0));
@@ -454,7 +521,7 @@ function convertDateFormat(dateStr) {
  * @param {object} options - { headless: true/false, slowMo: number }
  * @returns {Promise<void>}
  */
-async function runCampaignAutomation(customConfig = {}, options = { headless: true, slowMo: 50 }) {
+async function runCampaignAutomation(customConfig = {}, options = { headless: false, slowMo: 50 }) {
     const mergedConfig = { ...campaignConfig, ...customConfig };
     return fillCampaignForm(mergedConfig, options);
 }
