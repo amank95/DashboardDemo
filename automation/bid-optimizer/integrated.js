@@ -140,15 +140,28 @@ class IntegratedBidOptimizer {
 
         console.log('═'.repeat(60) + '\n');
 
-        // Print history
-        console.log('📋 Optimization History:');
-        console.log('┌─────────┬──────────┬────────┐');
-        console.log('│ Iter    │ Bid (₹)  │ Rank   │');
-        console.log('├─────────┼──────────┼────────┤');
+        // Get keywords from config
+        const keywords = campaignConfig.keywords || ['birthday', 'balloon'];
+
+        // Print history with keyword-wise bids
+        console.log('📋 Keyword Bid Optimization History:');
+        console.log('─'.repeat(60));
+        console.log(`Keywords: ${keywords.join(', ')}`);
+        console.log('─'.repeat(60));
+        console.log('');
+
         this.results.forEach(r => {
-            console.log(`│ ${String(r.iteration).padEnd(7)} │ ${String(r.bid).padEnd(8)} │ ${String(r.rank).padEnd(6)} │`);
+            console.log(`📍 Iteration ${r.iteration}:`);
+            keywords.forEach(kw => {
+                console.log(`   • ${kw}: ₹${r.bid}`);
+            });
+            console.log(`   └─ Rank: #${r.rank} ${r.rank === 1 ? '✅' : '❌'}`);
+            console.log('');
         });
-        console.log('└─────────┴──────────┴────────┘');
+
+        console.log('─'.repeat(60));
+        console.log(`🎯 Final Optimal Bid: ₹${optimalBid || 'N/A'} (per keyword)`);
+        console.log('─'.repeat(60));
 
         return {
             success: optimalBid !== null,
