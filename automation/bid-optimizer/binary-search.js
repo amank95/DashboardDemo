@@ -17,85 +17,165 @@ class BinarySearchStrategy {
         this.initialMaxBid = maxBid;
         this.threshold = threshold;
         this.percentage = percentage;  // 5% by default
-        this.reset();
+
+        // Per-keyword state tracking
+        this.keywordState = new Map();
     }
 
     /**
-     * Reset the search bounds (for new optimization run)
+     * Get or create state for a keyword
+     */
+    _getKeywordState(keyword) {
+        if (!this.keywordState.has(keyword)) {
+            this.keywordState.set(keyword, {
+                lastBid: null,
+                lastRank1Bid: null,
+                lastRank: null,              // Track previous rank for oscillation detection
+                currentPercentage: this.percentage,  // Start at initial percentage (5%)
+                converged: false,
+                history: []
+            });
+        }
+        return this.keywordState.get(keyword);
+    }
+
+    /**
+     * Reset state for all keywords
      */
     reset() {
-        this.minBid = this.initialMinBid;
-        this.maxBid = this.initialMaxBid;
-        this.lastRank1Bid = null;  // Track the lowest bid that achieved rank 1
-        this.lastBid = null;       // Track the last tested bid
-        this.history = [];
+        this.keywordState = new Map();
     }
 
     /**
-     * Calculate the next bid to try based on current ranking result
-     * Uses percentage-based adjustment (5% increase/decrease)
+     * Get the initial bid for a keyword
+     * @param {string} keyword - The keyword
+     * @returns {number} - Starting bid (midpoint of range)
+     */
+    getInitialBid(keyword) {
+        return Math.round((this.initialMinBid + this.initialMaxBid) / 2);
+    }
+
+    /**
+     * Get current bid for a keyword
+     * @param {string} keyword - The keyword
+     * @returns {number} - Current bid or initial bid
+     */
+    getCurrentBid(keyword) {
+        const state = this._getKeywordState(keyword);
+        return state.lastBid || this.getInitialBid(keyword);
+    }
+
+    /**
+     * Calculate the next bid for a specific keyword
+     * Uses decreasing percentage strategy:
+     * - Starts at 5%, decreases by 1% each time rank oscillates (1→2 or 2→1)
+     * - Converges when percentage reaches 1% and rank is 1
+     * @param {string} keyword - The keyword being optimized
      * @param {number} currentRank - The rank achieved with currentBid
      * @param {number} currentBid - The bid that was just tested
      * @returns {object} - { bid, converged, optimalBid, searchRange }
      */
-    calculateNextBid(currentRank, currentBid) {
+    calculateNextBid(keyword, currentRank, currentBid) {
+        const state = this._getKeywordState(keyword);
+
         // Store in history
-        this.history.push({ bid: currentBid, rank: currentRank });
-        this.lastBid = currentBid;
+        state.history.push({ bid: currentBid, rank: currentRank, percentage: state.currentPercentage });
+        state.lastBid = currentBid;
+
+        // Detect oscillation (rank changed from last time)
+        const oscillated = state.lastRank !== null && state.lastRank !== currentRank;
+
+        if (oscillated && state.currentPercentage > 1) {
+            state.currentPercentage--;  // Reduce percentage by 1%
+            console.log(`   ⚡ [${keyword}] Oscillation detected! Reducing to ${state.currentPercentage}%`);
+        }
+
+        // Update last rank for next iteration
+        state.lastRank = currentRank;
+
+        // Calculate change amount using current percentage for this keyword
+        const changeAmount = Math.round(currentBid * (state.currentPercentage / 100));
 
         let nextBid;
-        const changeAmount = Math.round(currentBid * (this.percentage / 100));
-
         if (currentRank === 1) {
             // Rank 1 achieved! Try to find a lower bid that still works
-            this.lastRank1Bid = currentBid;
-            // Decrease bid by percentage (e.g., 5%)
+            state.lastRank1Bid = currentBid;
+            // Decrease bid by current percentage
             nextBid = currentBid - changeAmount;
-            console.log(`   ✓ Rank 1 achieved at ₹${currentBid}. Decreasing by ${this.percentage}% (₹${changeAmount})...`);
+            console.log(`   ✓ [${keyword}] Rank 1 at ₹${currentBid}. Decreasing by ${state.currentPercentage}% (₹${changeAmount})...`);
         } else {
             // Rank not 1 - need higher bid
-            // Increase bid by percentage (e.g., 5%)
+            // Increase bid by current percentage
             nextBid = currentBid + changeAmount;
-            console.log(`   ✗ Rank ${currentRank} at ₹${currentBid}. Increasing by ${this.percentage}% (₹${changeAmount})...`);
+            console.log(`   ✗ [${keyword}] Rank ${currentRank} at ₹${currentBid}. Increasing by ${state.currentPercentage}% (₹${changeAmount})...`);
         }
 
         // Clamp to min/max bounds
-        nextBid = Math.max(this.minBid, Math.min(this.maxBid, nextBid));
+        nextBid = Math.max(this.initialMinBid, Math.min(this.initialMaxBid, nextBid));
 
-        // Check if converged (change amount is less than threshold)
-        const converged = changeAmount < this.threshold || nextBid === currentBid;
+        // Converge when:
+        // 1. Percentage reaches 1% AND current rank is 1 (optimal found!)
+        // 2. OR bid can't change anymore (at boundaries)
+        const converged = (state.currentPercentage === 1 && currentRank === 1) || nextBid === currentBid;
+        state.converged = converged;
+
+        if (converged && currentRank === 1) {
+            console.log(`   🎯 [${keyword}] CONVERGED at ₹${currentBid} with ${state.currentPercentage}%!`);
+        }
 
         return {
+            keyword,
             bid: nextBid,
             converged,
-            optimalBid: this.lastRank1Bid,
+            optimalBid: state.lastRank1Bid,
+            currentPercentage: state.currentPercentage,
             searchRange: {
-                min: this.minBid,
-                max: this.maxBid,
+                min: this.initialMinBid,
+                max: this.initialMaxBid,
                 difference: changeAmount
             },
-            history: this.history
+            history: state.history
         };
     }
 
     /**
-     * Get the initial bid to start the search
-     * @returns {number} - Starting bid (midpoint of range)
+     * Check if a keyword has converged
+     * @param {string} keyword - The keyword
+     * @returns {boolean}
      */
-    getInitialBid() {
-        return Math.round((this.minBid + this.maxBid) / 2);
+    isConverged(keyword) {
+        const state = this._getKeywordState(keyword);
+        return state.converged;
     }
 
     /**
-     * Get search statistics
+     * Get optimal bid for a keyword
+     * @param {string} keyword - The keyword
+     * @returns {number|null}
      */
-    getStats() {
-        return {
-            iterations: this.history.length,
-            searchRange: this.maxBid - this.minBid,
-            optimalBid: this.lastRank1Bid,
-            history: this.history
-        };
+    getOptimalBid(keyword) {
+        const state = this._getKeywordState(keyword);
+        return state.lastRank1Bid;
+    }
+
+    /**
+     * Check if all keywords have converged
+     * @param {string[]} keywords - Array of keywords
+     * @returns {boolean}
+     */
+    allConverged(keywords) {
+        return keywords.every(kw => this.isConverged(kw));
+    }
+
+    /**
+     * Get all keyword states (for debugging)
+     */
+    getAllStates() {
+        const result = {};
+        for (const [keyword, state] of this.keywordState) {
+            result[keyword] = { ...state };
+        }
+        return result;
     }
 }
 

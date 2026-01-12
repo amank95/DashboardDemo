@@ -7,103 +7,85 @@
 
 class RankingSimulator {
     constructor() {
-        // Simulated competitor bids (hidden from optimizer)
-        // These represent what competitors are bidding
-        this.competitors = [
-            { id: 'comp1', name: 'Competitor Alpha', bid: 8500 },
-            { id: 'comp2', name: 'Competitor Beta', bid: 6200 },
-            { id: 'comp3', name: 'Competitor Gamma', bid: 4800 },
-            { id: 'comp4', name: 'Competitor Delta', bid: 3500 },
-            { id: 'comp5', name: 'Competitor Epsilon', bid: 2000 },
-        ];
+        // Per-keyword Rank 1 thresholds
+        // To achieve Rank 1 for a keyword, bid must be > threshold
+        this.keywordRank1Bids = {
+            'birthday': 8500,   // Bid > 8500 = Rank 1 for "birthday"
+            'balloon': 5000,    // Bid > 5000 = Rank 1 for "balloon"
+            'party': 6500,
+            'celebration': 4000,
+            'gift': 7000,
+            'decoration': 3500
+        };
+
+        // Default threshold for unknown keywords
+        this.defaultThreshold = 5000;
     }
 
     /**
-     * Get the ranking for a given bid amount
+     * Get the ranking for a given keyword and bid amount
+     * @param {string} keyword - The keyword to check ranking for
      * @param {number} userBid - The bid amount to check
-     * @returns {object} - { rank, totalCompetitors, message, breakdown }
+     * @returns {object} - { rank, threshold, message }
      */
-    getRanking(userBid) {
-        // Combine user bid with competitors
-        const allBids = [
-            ...this.competitors.map(c => ({ ...c, isUser: false })),
-            { id: 'user', name: 'Your Bid', bid: userBid, isUser: true }
-        ];
-
-        // Sort by bid amount (highest first = best rank)
-        allBids.sort((a, b) => b.bid - a.bid);
-
-        // Find user's position (1-indexed)
-        const userRank = allBids.findIndex(b => b.isUser) + 1;
-
-        // Get the bid needed to move up
-        let bidNeededToMoveUp = null;
-        if (userRank > 1) {
-            bidNeededToMoveUp = allBids[userRank - 2].bid + 1;
-        }
+    getRanking(keyword, userBid) {
+        const threshold = this.keywordRank1Bids[keyword] || this.defaultThreshold;
+        const rank = userBid > threshold ? 1 : 2;
 
         return {
-            rank: userRank,
-            totalCompetitors: allBids.length,
-            bidNeededToMoveUp,
-            message: this._getMessage(userRank, bidNeededToMoveUp),
-            breakdown: allBids.map((b, i) => ({
-                rank: i + 1,
-                name: b.name,
-                bid: b.bid,
-                isUser: b.isUser
-            }))
+            rank,
+            threshold,
+            keyword,
+            userBid,
+            message: this._getMessage(keyword, rank, threshold, userBid)
         };
     }
 
     /**
      * Generate a human-readable message about the ranking
      */
-    _getMessage(rank, bidNeeded) {
+    _getMessage(keyword, rank, threshold, userBid) {
         if (rank === 1) {
-            return '🏆 Congratulations! You are Rank #1!';
-        } else if (rank === 2) {
-            return `📈 You are Rank #${rank}. Bid ₹${bidNeeded} or more to reach #1.`;
+            return `🏆 "${keyword}": Rank #1 achieved with ₹${userBid}!`;
         } else {
-            return `📊 You are Rank #${rank}. Bid ₹${bidNeeded} to move up one position.`;
+            const bidNeeded = threshold + 1;
+            return `📈 "${keyword}": Rank #${rank}. Need > ₹${threshold} for Rank #1 (you bid ₹${userBid}).`;
         }
     }
 
     /**
-     * Add random fluctuation to competitor bids (simulates market changes)
-     * @param {number} maxChange - Maximum change in either direction
+     * Get the threshold for a specific keyword
+     * @param {string} keyword - The keyword
+     * @returns {number} - The Rank 1 threshold
      */
-    addNoise(maxChange = 500) {
-        this.competitors.forEach(c => {
-            const change = Math.floor((Math.random() - 0.5) * 2 * maxChange);
-            c.bid = Math.max(500, c.bid + change);  // Minimum bid of ₹500
-        });
-        console.log('📊 Competitor bids have fluctuated');
+    getThreshold(keyword) {
+        return this.keywordRank1Bids[keyword] || this.defaultThreshold;
     }
 
     /**
-     * Update a specific competitor's bid
+     * Set threshold for a keyword
+     * @param {string} keyword - The keyword
+     * @param {number} threshold - The new threshold
      */
-    updateCompetitor(id, newBid) {
-        const comp = this.competitors.find(c => c.id === id);
-        if (comp) {
-            comp.bid = newBid;
-        }
+    setThreshold(keyword, threshold) {
+        this.keywordRank1Bids[keyword] = threshold;
     }
 
     /**
-     * Get all competitor bids (for debugging)
+     * Get all keyword thresholds (for debugging)
      */
-    getCompetitors() {
-        return this.competitors;
+    getAllThresholds() {
+        return { ...this.keywordRank1Bids };
     }
 
     /**
-     * Get the minimum bid needed for rank 1 (cheat mode for testing)
+     * Get the minimum bid needed for rank 1 for a keyword
+     * @param {string} keyword - The keyword
+     * @returns {number} - Minimum bid for Rank 1
      */
-    getMinBidForRank1() {
-        const maxCompetitorBid = Math.max(...this.competitors.map(c => c.bid));
-        return maxCompetitorBid + 1;
+    getMinBidForRank1(keyword) {
+        const threshold = this.keywordRank1Bids[keyword] || this.defaultThreshold;
+        return threshold + 1;
     }
 }
 

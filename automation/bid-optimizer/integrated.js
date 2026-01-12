@@ -2,7 +2,7 @@
  * Full Bid Optimizer with Campaign Automation Integration
  * 
  * Connects the bid optimization logic with the campaign form automation.
- * When rank < 1, runs the automation to submit a new bid until optimal.
+ * Optimizes each keyword independently with different bid amounts.
  */
 
 const config = require('./config');
@@ -26,38 +26,61 @@ class IntegratedBidOptimizer {
 
     /**
      * Run full optimization with campaign automation
+     * Optimizes each keyword independently
      * @param {object} campaignConfig - Campaign configuration
      * @param {boolean} dryRun - If true, skip actual automation (just simulate)
      */
     async optimize(campaignConfig, dryRun = false) {
+        const keywords = campaignConfig.keywords || ['birthday', 'balloon'];
+
         console.log('\n' + '═'.repeat(60));
-        console.log('🚀 INTEGRATED BID OPTIMIZER WITH CAMPAIGN AUTOMATION');
+        console.log('🚀 PER-KEYWORD BID OPTIMIZER');
         console.log('═'.repeat(60));
         console.log(`📦 Product: ${campaignConfig.products?.[0] || 'Products from config'}`);
         console.log(`🎯 Target: Rank #${this.config.TARGET_RANK}`);
         console.log(`💰 Bid Range: ₹${this.config.MIN_BID} - ₹${this.config.MAX_BID}`);
+        console.log(`📝 Keywords: ${keywords.join(', ')}`);
         console.log(`🤖 Mode: ${dryRun ? 'DRY RUN (no actual automation)' : 'LIVE (will run automation)'}`);
-        console.log('═'.repeat(60) + '\n');
+        console.log('═'.repeat(60));
+
+        // Show per-keyword thresholds
+        console.log('\n📊 Rank 1 Thresholds per Keyword:');
+        keywords.forEach(kw => {
+            const threshold = this.simulator.getThreshold(kw);
+            console.log(`   • "${kw}": Need > ₹${threshold} for Rank 1`);
+        });
+        console.log('');
 
         let iteration = 0;
-        let currentBid = this.binarySearch.getInitialBid();
-        let optimalBid = null;
+
+        // Initialize current bids for each keyword
+        const currentBids = {};
+        keywords.forEach(kw => {
+            currentBids[kw] = this.binarySearch.getInitialBid(kw);
+        });
 
         while (iteration < this.config.MAX_ITERATIONS) {
             iteration++;
             console.log(`\n${'─'.repeat(50)}`);
             console.log(`📍 ITERATION ${iteration}/${this.config.MAX_ITERATIONS}`);
             console.log(`${'─'.repeat(50)}`);
-            console.log(`💵 Testing bid: ₹${currentBid}`);
 
-            // Step 1: Run campaign automation with this bid
+            // Show current bids for each keyword
+            console.log('💵 Current bids:');
+            keywords.forEach(kw => {
+                const isConverged = this.binarySearch.isConverged(kw);
+                const status = isConverged ? '✅ CONVERGED' : '🔄';
+                console.log(`   • "${kw}": ₹${currentBids[kw]} ${status}`);
+            });
+
+            // Step 1: Run campaign automation with per-keyword bids
             if (!dryRun) {
                 console.log('\n🌐 Running campaign automation...');
                 try {
                     await runCampaignAutomation({
                         ...campaignConfig,
-                        budgetAmount: currentBid,
-                        campaignName: `${campaignConfig.campaignName || 'Auto-Optimized'} - Bid ₹${currentBid}`
+                        keywordBids: currentBids,  // Pass per-keyword bids
+                        campaignName: `${campaignConfig.campaignName || 'Auto-Optimized'} - Iter ${iteration}`
                     }, {
                         headless: this.config.HEADLESS,
                         slowMo: this.config.SLOW_MO
@@ -65,47 +88,63 @@ class IntegratedBidOptimizer {
                     console.log('✅ Campaign submitted successfully!');
                 } catch (error) {
                     console.error('❌ Campaign automation failed:', error.message);
-                    // Continue anyway to check ranking
                 }
             } else {
-                console.log('⏭️  [DRY RUN] Skipping automation...');
+                console.log('\n⏭️  [DRY RUN] Skipping automation...');
             }
 
             // Step 2: Wait for ranking to update (simulated)
             console.log(`\n⏳ Waiting for rank update (${this.config.RANKING_CHECK_INTERVAL}ms)...`);
             await this.delay(this.config.RANKING_CHECK_INTERVAL);
 
-            // Step 3: Check current ranking (using simulator)
-            const rankResult = this.simulator.getRanking(currentBid);
-            console.log(`\n📈 RANK RESULT: #${rankResult.rank}`);
-            console.log(`   ${rankResult.message}`);
+            // Step 3: Check ranking for each keyword and calculate next bids
+            console.log('\n📈 RANK RESULTS:');
+            const iterationResult = { iteration, keywords: {}, timestamp: new Date() };
 
-            // Store result
-            this.results.push({
-                iteration,
-                bid: currentBid,
-                rank: rankResult.rank,
-                timestamp: new Date()
-            });
+            for (const keyword of keywords) {
+                // Skip if already converged
+                if (this.binarySearch.isConverged(keyword)) {
+                    const optimalBid = this.binarySearch.getOptimalBid(keyword);
+                    console.log(`   ✅ "${keyword}": Converged at ₹${optimalBid}`);
+                    iterationResult.keywords[keyword] = {
+                        bid: optimalBid,
+                        rank: 1,
+                        converged: true
+                    };
+                    continue;
+                }
 
-            // Step 4: Decide next action based on rank
-            if (rankResult.rank === this.config.TARGET_RANK) {
-                console.log('\n🎯 Target rank achieved! Trying to find lower bid...');
-            } else {
-                console.log(`\n⚠️ Rank ${rankResult.rank} - Need to adjust bid...`);
+                // Get ranking for this keyword
+                const rankResult = this.simulator.getRanking(keyword, currentBids[keyword]);
+                console.log(`   ${rankResult.message}`);
+
+                // Calculate next bid for this keyword
+                const searchResult = this.binarySearch.calculateNextBid(
+                    keyword,
+                    rankResult.rank,
+                    currentBids[keyword]
+                );
+
+                iterationResult.keywords[keyword] = {
+                    bid: currentBids[keyword],
+                    rank: rankResult.rank,
+                    converged: searchResult.converged,
+                    nextBid: searchResult.bid
+                };
+
+                // Update bid for next iteration
+                if (!searchResult.converged) {
+                    currentBids[keyword] = searchResult.bid;
+                }
             }
 
-            // Step 5: Calculate next bid using binary search
-            const searchResult = this.binarySearch.calculateNextBid(rankResult.rank, currentBid);
+            this.results.push(iterationResult);
 
-            if (searchResult.converged) {
-                optimalBid = searchResult.optimalBid;
-                console.log(`\n✅ CONVERGED! Search range: ₹${searchResult.searchRange.difference}`);
+            // Check if all keywords have converged
+            if (this.binarySearch.allConverged(keywords)) {
+                console.log('\n✅ ALL KEYWORDS CONVERGED!');
                 break;
             }
-
-            currentBid = searchResult.bid;
-            console.log(`\n📊 Next bid to try: ₹${currentBid}`);
         }
 
         // Final result
@@ -113,60 +152,54 @@ class IntegratedBidOptimizer {
         console.log('🎉 OPTIMIZATION COMPLETE');
         console.log('═'.repeat(60));
 
-        if (optimalBid) {
-            console.log(`✅ Optimal Bid Found: ₹${optimalBid}`);
-            console.log(`📊 Total Iterations: ${iteration}`);
-            console.log(`🏆 This achieves Rank #1 at minimum cost!`);
-
-            // Run final campaign with optimal bid
-            if (!dryRun) {
-                console.log('\n🚀 Submitting final campaign with optimal bid...');
-                try {
-                    await runCampaignAutomation({
-                        ...campaignConfig,
-                        budgetAmount: optimalBid,
-                        campaignName: `${campaignConfig.campaignName || 'Optimized'} - FINAL ₹${optimalBid}`
-                    }, {
-                        headless: false,  // Show final submission
-                        slowMo: 500
-                    });
-                    console.log('✅ Final campaign submitted!');
-                } catch (error) {
-                    console.error('❌ Final submission failed:', error.message);
-                }
-            }
-        } else {
-            console.log(`⚠️ Could not find optimal bid in ${iteration} iterations`);
-        }
-
-        console.log('═'.repeat(60) + '\n');
-
-        // Get keywords from config
-        const keywords = campaignConfig.keywords || ['birthday', 'balloon'];
-
-        // Print history with keyword-wise bids
-        console.log('📋 Keyword Bid Optimization History:');
-        console.log('─'.repeat(60));
-        console.log(`Keywords: ${keywords.join(', ')}`);
-        console.log('─'.repeat(60));
-        console.log('');
-
-        this.results.forEach(r => {
-            console.log(`📍 Iteration ${r.iteration}:`);
-            keywords.forEach(kw => {
-                console.log(`   • ${kw}: ₹${r.bid}`);
-            });
-            console.log(`   └─ Rank: #${r.rank} ${r.rank === 1 ? '✅' : '❌'}`);
-            console.log('');
+        // Get optimal bids for each keyword
+        const optimalBids = {};
+        keywords.forEach(kw => {
+            optimalBids[kw] = this.binarySearch.getOptimalBid(kw);
         });
 
+        console.log('\n🏆 OPTIMAL BIDS PER KEYWORD:');
+        keywords.forEach(kw => {
+            const bid = optimalBids[kw];
+            const threshold = this.simulator.getThreshold(kw);
+            console.log(`   • "${kw}": ₹${bid || 'N/A'} (threshold: ₹${threshold})`);
+        });
+
+        // Run final campaign with optimal bids
+        if (!dryRun && Object.values(optimalBids).some(b => b !== null)) {
+            console.log('\n🚀 Submitting final campaign with optimal bids...');
+            try {
+                await runCampaignAutomation({
+                    ...campaignConfig,
+                    keywordBids: optimalBids,
+                    campaignName: `${campaignConfig.campaignName || 'Optimized'} - FINAL`
+                }, {
+                    headless: false,
+                    slowMo: 500
+                });
+                console.log('✅ Final campaign submitted!');
+            } catch (error) {
+                console.error('❌ Final submission failed:', error.message);
+            }
+        }
+
+        console.log('\n' + '═'.repeat(60));
+
+        // Print history
+        console.log('\n📋 Optimization History:');
         console.log('─'.repeat(60));
-        console.log(`🎯 Final Optimal Bid: ₹${optimalBid || 'N/A'} (per keyword)`);
+        this.results.forEach(r => {
+            console.log(`\n📍 Iteration ${r.iteration}:`);
+            for (const [kw, data] of Object.entries(r.keywords)) {
+                const status = data.converged ? '✅' : (data.rank === 1 ? '🎯' : '❌');
+                console.log(`   • "${kw}": ₹${data.bid} → Rank #${data.rank} ${status}`);
+            }
+        });
         console.log('─'.repeat(60));
 
         return {
-            success: optimalBid !== null,
-            optimalBid,
+            success: this.binarySearch.allConverged(keywords),
+            optimalBids,
             iterations: iteration,
             history: this.results
         };
@@ -196,7 +229,7 @@ async function main() {
     const maxBid = getArg('max-bid') || getArg('max');
 
     console.log('╔════════════════════════════════════════════════════════════╗');
-    console.log('║     INTEGRATED BID OPTIMIZER + CAMPAIGN AUTOMATION         ║');
+    console.log('║     PER-KEYWORD BID OPTIMIZER + CAMPAIGN AUTOMATION        ║');
     console.log('╚════════════════════════════════════════════════════════════╝\n');
 
     console.log('📋 Usage: node integrated.js [options]');
@@ -220,16 +253,15 @@ async function main() {
 
     const optimizer = new IntegratedBidOptimizer(optimizerConfig);
 
-    // Override starting bid if provided (keeps full range, just changes first bid)
+    // Override starting bid if provided
     if (startBid) {
-        // Don't limit range - just set the starting point
-        // Binary search will expand from there
         console.log(`💵 Custom starting bid: ₹${startBid}`);
         console.log(`   Full search range: ₹${optimizer.config.MIN_BID} - ₹${optimizer.config.MAX_BID}`);
         console.log(`   (Will adjust up/down based on rank results)\n`);
 
-        // Override the getInitialBid method to return custom start
-        optimizer.binarySearch.getInitialBid = () => startBid;
+        // Override getInitialBid to return custom start for all keywords
+        const originalGetInitialBid = optimizer.binarySearch.getInitialBid.bind(optimizer.binarySearch);
+        optimizer.binarySearch.getInitialBid = (keyword) => startBid;
     }
 
     try {
@@ -253,19 +285,18 @@ async function main() {
 
             // Targeting
             keywordTargeting: true,
-            keywords: ['birthday', 'balloon'],  // Use actual suggested keywords
+            keywords: ['birthday', 'balloon'],  // Each keyword optimized independently
             categoryTargeting: true,
 
             // Budget
             budgetStrategy: 'overall',
-            overallBudget: 50000,       // Fixed total campaign budget
-            budgetAmount: 10000         // Keyword bid (will be optimized)
+            overallBudget: 50000       // Fixed total campaign budget
         }, dryRun);
 
         console.log('\n📋 Final Result:');
         console.log(JSON.stringify({
             success: result.success,
-            optimalBid: result.optimalBid,
+            optimalBids: result.optimalBids,
             iterations: result.iterations
         }, null, 2));
 
