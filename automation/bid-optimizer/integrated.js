@@ -17,7 +17,8 @@ class IntegratedBidOptimizer {
         this.binarySearch = new BinarySearchStrategy(
             this.config.MIN_BID,
             this.config.MAX_BID,
-            this.config.BID_THRESHOLD
+            this.config.BID_THRESHOLD,
+            this.config.BID_PERCENTAGE || 5  // 5% bid change per iteration
         );
         this.results = [];
         this.runId = Date.now();

@@ -10,11 +10,13 @@ class BinarySearchStrategy {
      * @param {number} minBid - Minimum possible bid
      * @param {number} maxBid - Maximum possible bid
      * @param {number} threshold - Stop when difference < threshold
+     * @param {number} percentage - Bid change percentage (default 5%)
      */
-    constructor(minBid, maxBid, threshold) {
+    constructor(minBid, maxBid, threshold, percentage = 5) {
         this.initialMinBid = minBid;
         this.initialMaxBid = maxBid;
         this.threshold = threshold;
+        this.percentage = percentage;  // 5% by default
         this.reset();
     }
 
@@ -25,11 +27,13 @@ class BinarySearchStrategy {
         this.minBid = this.initialMinBid;
         this.maxBid = this.initialMaxBid;
         this.lastRank1Bid = null;  // Track the lowest bid that achieved rank 1
+        this.lastBid = null;       // Track the last tested bid
         this.history = [];
     }
 
     /**
      * Calculate the next bid to try based on current ranking result
+     * Uses percentage-based adjustment (5% increase/decrease)
      * @param {number} currentRank - The rank achieved with currentBid
      * @param {number} currentBid - The bid that was just tested
      * @returns {object} - { bid, converged, optimalBid, searchRange }
@@ -37,24 +41,29 @@ class BinarySearchStrategy {
     calculateNextBid(currentRank, currentBid) {
         // Store in history
         this.history.push({ bid: currentBid, rank: currentRank });
+        this.lastBid = currentBid;
+
+        let nextBid;
+        const changeAmount = Math.round(currentBid * (this.percentage / 100));
 
         if (currentRank === 1) {
             // Rank 1 achieved! Try to find a lower bid that still works
             this.lastRank1Bid = currentBid;
-            this.maxBid = currentBid;
-            console.log(`   ✓ Rank 1 achieved at ₹${currentBid}. Trying lower...`);
+            // Decrease bid by percentage (e.g., 5%)
+            nextBid = currentBid - changeAmount;
+            console.log(`   ✓ Rank 1 achieved at ₹${currentBid}. Decreasing by ${this.percentage}% (₹${changeAmount})...`);
         } else {
             // Rank not 1 - need higher bid
-            this.minBid = currentBid;
-            console.log(`   ✗ Rank ${currentRank} at ₹${currentBid}. Trying higher...`);
+            // Increase bid by percentage (e.g., 5%)
+            nextBid = currentBid + changeAmount;
+            console.log(`   ✗ Rank ${currentRank} at ₹${currentBid}. Increasing by ${this.percentage}% (₹${changeAmount})...`);
         }
 
-        // Check if converged
-        const difference = this.maxBid - this.minBid;
-        const converged = difference < this.threshold;
+        // Clamp to min/max bounds
+        nextBid = Math.max(this.minBid, Math.min(this.maxBid, nextBid));
 
-        // Calculate next bid (midpoint)
-        const nextBid = Math.round((this.minBid + this.maxBid) / 2);
+        // Check if converged (change amount is less than threshold)
+        const converged = changeAmount < this.threshold || nextBid === currentBid;
 
         return {
             bid: nextBid,
@@ -63,7 +72,7 @@ class BinarySearchStrategy {
             searchRange: {
                 min: this.minBid,
                 max: this.maxBid,
-                difference
+                difference: changeAmount
             },
             history: this.history
         };

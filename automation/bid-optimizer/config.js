@@ -11,6 +11,7 @@ module.exports = {
     MIN_BID: 100,
     MAX_BID: 50000,
     BID_THRESHOLD: 50,  // Stop when difference < ₹50
+    BID_PERCENTAGE: 5,  // Bid changes by 5% each iteration
 
     // Timing
     RANKING_CHECK_INTERVAL: 100,  // 100ms for fast testing
