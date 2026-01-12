@@ -8,6 +8,7 @@
 const config = require('./config');
 const RankingSimulator = require('./ranking-simulator');
 const BinarySearchStrategy = require('./binary-search');
+const ReportGenerator = require('./report-generator');
 const { runCampaignAutomation } = require('../campaign-form-automation');
 
 class IntegratedBidOptimizer {
@@ -274,6 +275,7 @@ class IntegratedBidOptimizer {
 async function main() {
     const args = process.argv.slice(2);
     const dryRun = args.includes('--dry-run') || args.includes('-d');
+    const generateReport = args.includes('--report') || args.includes('-r');
 
     // Parse command line arguments
     const getArg = (name) => {
@@ -296,7 +298,8 @@ async function main() {
     console.log('   --dry-run, -d     Run without browser automation');
     console.log('   --start-bid=N     Set starting bid (default: midpoint)');
     console.log('   --min-bid=N       Set minimum bid (default: 100)');
-    console.log('   --max-bid=N       Set maximum bid (default: 50000)\n');
+    console.log('   --max-bid=N       Set maximum bid (default: 50000)');
+    console.log('   --report, -r      Generate report file\n');
 
     if (dryRun) {
         console.log('🔸 Running in DRY RUN mode (no actual browser automation)\n');
@@ -324,37 +327,39 @@ async function main() {
         optimizer.binarySearch.getInitialBid = (keyword) => startBid;
     }
 
+    const campaignConfig = {
+        // Campaign settings
+        campaignName: 'Auto-Optimized Campaign',
+        advertisingObjective: 'performance',
+        adAsset: 'productBooster',
+
+        // Dates
+        startDate: '07-01-2026',
+        endDate: '31-01-2026',
+
+        // Region
+        region: 'selectCities',
+        cities: ['Mumbai', 'Bangalore', 'New Delhi'],
+
+        // Products
+        products: ['Nike Air Max'],
+        selectAllProducts: false,
+
+        // Targeting
+        keywordTargeting: true,
+        keywords: ['birthday', 'balloon'],  // Each keyword optimized independently
+        categoryTargeting: true,
+
+        // Budget
+        budgetStrategy: 'overall',
+        overallBudget: 50000,       // Fixed total campaign budget
+
+        // Max bid ceiling (user's start-bid becomes the maximum they're willing to pay)
+        maxBid: startBid || null    // If set, will not bid above this amount
+    };
+
     try {
-        const result = await optimizer.optimize({
-            // Campaign settings
-            campaignName: 'Auto-Optimized Campaign',
-            advertisingObjective: 'performance',
-            adAsset: 'productBooster',
-
-            // Dates
-            startDate: '07-01-2026',
-            endDate: '31-01-2026',
-
-            // Region
-            region: 'selectCities',
-            cities: ['Mumbai', 'Bangalore', 'New Delhi'],
-
-            // Products
-            products: ['Nike Air Max'],
-            selectAllProducts: false,
-
-            // Targeting
-            keywordTargeting: true,
-            keywords: ['birthday', 'balloon'],  // Each keyword optimized independently
-            categoryTargeting: true,
-
-            // Budget
-            budgetStrategy: 'overall',
-            overallBudget: 50000,       // Fixed total campaign budget
-
-            // Max bid ceiling (user's start-bid becomes the maximum they're willing to pay)
-            maxBid: startBid || null    // If set, will not bid above this amount
-        }, dryRun);
+        const result = await optimizer.optimize(campaignConfig, dryRun);
 
         console.log('\n📋 Final Result:');
         console.log(JSON.stringify({
@@ -362,6 +367,23 @@ async function main() {
             optimalBids: result.optimalBids,
             iterations: result.iterations
         }, null, 2));
+
+        // Generate report if requested
+        if (generateReport) {
+            console.log('\n📄 Generating report...');
+            const reportGenerator = new ReportGenerator();
+            const filepath = reportGenerator.generatePDF({
+                campaignConfig,
+                optimalBids: result.optimalBids,
+                totalSavings: result.totalSavings,
+                iterations: result.iterations,
+                history: result.history,
+                startingBid: startBid || optimizer.config.MIN_BID,
+                keywords: campaignConfig.keywords,
+                maxIterations: optimizer.config.MAX_ITERATIONS
+            });
+            console.log(`✅ PDF Report saved to: ${filepath}`);
+        }
 
     } catch (error) {
         console.error('❌ Error:', error.message);
