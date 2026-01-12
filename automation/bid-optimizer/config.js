@@ -15,7 +15,7 @@ module.exports = {
 
     // Timing
     RANKING_CHECK_INTERVAL: 100,  // 100ms for fast testing
-    MAX_ITERATIONS: 15,
+    MAX_ITERATIONS: 25,
 
     // AI settings
     AI_TRAINING_THRESHOLD: 20,  // Use Gemini after 20+ observations

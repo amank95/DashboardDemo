@@ -57,7 +57,16 @@ class IntegratedBidOptimizer {
         const currentBids = {};
         keywords.forEach(kw => {
             currentBids[kw] = this.binarySearch.getInitialBid(kw);
+
+            // Set max bid ceiling for this keyword
+            // Use per-keyword maxBids if provided, otherwise use global maxBid
+            const maxBid = campaignConfig.maxBids?.[kw] || campaignConfig.maxBid || null;
+            if (maxBid) {
+                this.binarySearch.setMaxBid(kw, maxBid);
+                console.log(`   💰 "${kw}": Max bid ceiling = ₹${maxBid}`);
+            }
         });
+        console.log('');
 
         while (iteration < this.config.MAX_ITERATIONS) {
             iteration++;
@@ -162,7 +171,14 @@ class IntegratedBidOptimizer {
         keywords.forEach(kw => {
             const bid = optimalBids[kw];
             const threshold = this.simulator.getThreshold(kw);
-            console.log(`   • "${kw}": ₹${bid || 'N/A'} (threshold: ₹${threshold})`);
+            const exceeded = this.binarySearch.isExceeded(kw);
+            if (exceeded) {
+                console.log(`   ⛔ "${kw}": EXCEEDED (max bid < threshold ₹${threshold})`);
+            } else if (bid) {
+                console.log(`   ✅ "${kw}": ₹${bid} (threshold: ₹${threshold})`);
+            } else {
+                console.log(`   ⚠️ "${kw}": N/A (threshold: ₹${threshold})`);
+            }
         });
 
         // Run final campaign with optimal bids
@@ -290,7 +306,10 @@ async function main() {
 
             // Budget
             budgetStrategy: 'overall',
-            overallBudget: 50000       // Fixed total campaign budget
+            overallBudget: 50000,       // Fixed total campaign budget
+
+            // Max bid ceiling (user's start-bid becomes the maximum they're willing to pay)
+            maxBid: startBid || null    // If set, will not bid above this amount
         }, dryRun);
 
         console.log('\n📋 Final Result:');

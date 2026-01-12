@@ -32,11 +32,33 @@ class BinarySearchStrategy {
                 lastRank1Bid: null,
                 lastRank: null,              // Track previous rank for oscillation detection
                 currentPercentage: this.percentage,  // Start at initial percentage (5%)
+                maxBid: null,                // User's maximum bid ceiling for this keyword
+                exceeded: false,             // True if can't afford Rank 1 within max bid
                 converged: false,
                 history: []
             });
         }
         return this.keywordState.get(keyword);
+    }
+
+    /**
+     * Set maximum bid ceiling for a keyword
+     * @param {string} keyword - The keyword
+     * @param {number} maxBid - Maximum bid the user is willing to pay
+     */
+    setMaxBid(keyword, maxBid) {
+        const state = this._getKeywordState(keyword);
+        state.maxBid = maxBid;
+    }
+
+    /**
+     * Check if a keyword has exceeded its max bid (can't afford Rank 1)
+     * @param {string} keyword - The keyword
+     * @returns {boolean}
+     */
+    isExceeded(keyword) {
+        const state = this._getKeywordState(keyword);
+        return state.exceeded;
     }
 
     /**
@@ -112,6 +134,31 @@ class BinarySearchStrategy {
 
         // Clamp to min/max bounds
         nextBid = Math.max(this.initialMinBid, Math.min(this.initialMaxBid, nextBid));
+
+        // Check if next bid would exceed user's max bid ceiling
+        if (state.maxBid && nextBid > state.maxBid) {
+            nextBid = state.maxBid;  // Cap at user's max
+            if (currentRank !== 1) {
+                // Can't afford Rank 1 within budget
+                state.exceeded = true;
+                state.converged = true;  // Stop trying
+                console.log(`   ⛔ [${keyword}] Max bid ₹${state.maxBid} reached. Cannot afford Rank 1!`);
+                return {
+                    keyword,
+                    bid: nextBid,
+                    converged: true,
+                    exceeded: true,
+                    optimalBid: null,  // No optimal bid found within budget
+                    currentPercentage: state.currentPercentage,
+                    searchRange: {
+                        min: this.initialMinBid,
+                        max: state.maxBid,
+                        difference: changeAmount
+                    },
+                    history: state.history
+                };
+            }
+        }
 
         // Converge when:
         // 1. Percentage reaches 1% AND current rank is 1 (optimal found!)
