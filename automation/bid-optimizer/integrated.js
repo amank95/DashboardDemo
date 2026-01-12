@@ -213,9 +213,53 @@ class IntegratedBidOptimizer {
         });
         console.log('─'.repeat(60));
 
+        // Calculate and display savings at the VERY END (after all browser output)
+        const startingBid = campaignConfig.maxBid || this.binarySearch.getInitialBid(keywords[0]);
+        let totalSavings = 0;
+        let keywordsWithSavings = 0;
+
+        console.log('\n' + '═'.repeat(60));
+        console.log('💰 SAVINGS SUMMARY');
+        console.log('═'.repeat(60));
+        console.log(`\n   Starting Bid: ₹${startingBid} (per keyword)\n`);
+
+        keywords.forEach(kw => {
+            const optimalBid = optimalBids[kw];
+            const exceeded = this.binarySearch.isExceeded(kw);
+
+            if (optimalBid && !exceeded) {
+                const saved = startingBid - optimalBid;
+                if (saved > 0) {
+                    totalSavings += saved;
+                    keywordsWithSavings++;
+                    const percentSaved = ((saved / startingBid) * 100).toFixed(1);
+                    console.log(`   ✅ "${kw}": ₹${startingBid} → ₹${optimalBid}`);
+                    console.log(`      💵 Saved: ₹${saved} (${percentSaved}%)`);
+                } else if (saved === 0) {
+                    console.log(`   • "${kw}": ₹${optimalBid} (No savings - at optimal)`);
+                } else {
+                    console.log(`   • "${kw}": ₹${optimalBid} (Bid increased by ₹${Math.abs(saved)})`);
+                }
+            } else if (exceeded) {
+                console.log(`   ⛔ "${kw}": Cannot afford Rank 1 within budget`);
+            }
+            console.log('');
+        });
+
+        console.log('─'.repeat(60));
+        if (totalSavings > 0) {
+            const avgSavingsPercent = ((totalSavings / (startingBid * keywordsWithSavings)) * 100).toFixed(1);
+            console.log(`   🎉 TOTAL SAVED: ₹${totalSavings} across ${keywordsWithSavings} keyword(s)`);
+            console.log(`   📊 Average savings: ${avgSavingsPercent}% per keyword`);
+        } else {
+            console.log(`   📊 Starting bid was already optimal or near threshold`);
+        }
+        console.log('═'.repeat(60));
+
         return {
             success: this.binarySearch.allConverged(keywords),
             optimalBids,
+            totalSavings,
             iterations: iteration,
             history: this.results
         };

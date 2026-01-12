@@ -137,18 +137,21 @@ class BinarySearchStrategy {
 
         // Check if next bid would exceed user's max bid ceiling
         if (state.maxBid && nextBid > state.maxBid) {
-            nextBid = state.maxBid;  // Cap at user's max
-            if (currentRank !== 1) {
-                // Can't afford Rank 1 within budget
+            if (currentBid < state.maxBid) {
+                // Haven't tried max bid yet - try it first
+                nextBid = state.maxBid;
+                console.log(`   ⚠️ [${keyword}] Trying max bid ₹${state.maxBid}...`);
+            } else if (currentBid >= state.maxBid && currentRank !== 1) {
+                // Already at or above max bid and still not Rank 1 - truly exceeded
                 state.exceeded = true;
-                state.converged = true;  // Stop trying
-                console.log(`   ⛔ [${keyword}] Max bid ₹${state.maxBid} reached. Cannot afford Rank 1!`);
+                state.converged = true;
+                console.log(`   ⛔ [${keyword}] Max bid ₹${state.maxBid} tested. Cannot afford Rank 1!`);
                 return {
                     keyword,
-                    bid: nextBid,
+                    bid: state.maxBid,
                     converged: true,
                     exceeded: true,
-                    optimalBid: null,  // No optimal bid found within budget
+                    optimalBid: null,
                     currentPercentage: state.currentPercentage,
                     searchRange: {
                         min: this.initialMinBid,
@@ -158,6 +161,7 @@ class BinarySearchStrategy {
                     history: state.history
                 };
             }
+            // If at max bid and Rank 1, normal flow continues (will decrease)
         }
 
         // Converge when:
