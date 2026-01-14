@@ -13,6 +13,7 @@
     "@google/generative-ai": "^0.24.1",
     "dotenv": "^17.2.3",
     "mongoose": "^9.1.2",
+    "pdfkit": "^0.17.2",
     "playwright": "^1.57.0"
   }
 }

@@ -18,16 +18,20 @@ mongoose.connect(MONGODB_URI, {
   useNewUrlParser: true,
   useUnifiedTopology: true,
 })
-.then(() => {
-  console.log('MongoDB connected successfully');
-})
-.catch((error) => {
-  console.error('MongoDB connection error:', error);
-});
+  .then(() => {
+    console.log('MongoDB connected successfully');
+  })
+  .catch((error) => {
+    console.error('MongoDB connection error:', error);
+  });
 
 // Routes
 const campaignRoutes = require('./routes/campaignRoutes');
+const bidOptimizerRoutes = require('./routes/bidOptimizerRoutes');
+const reportsRoutes = require('./routes/reportsRoutes');
 app.use('/api/campaigns', campaignRoutes);
+app.use('/api/bid-optimizer', bidOptimizerRoutes);
+app.use('/api/reports', reportsRoutes);
 
 // Health check
 app.get('/api/health', (req, res) => {

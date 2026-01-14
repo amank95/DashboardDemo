@@ -362,8 +362,19 @@ async function fillCampaignForm(config, options = {}) {
         // Now enter bid amount for each selected keyword
         // The bid input is a number input inside the Selected keywords section
         // It has placeholder="Enter..." and is wrapped in a div with ₹ prefix
-        if (config.budgetAmount) {
-            console.log(`   💰 Target bid amount: ₹${config.budgetAmount}`);
+
+        // Support per-keyword bids (keywordBids) or single bid (budgetAmount)
+        const hasPerKeywordBids = config.keywordBids && Object.keys(config.keywordBids).length > 0;
+
+        if (hasPerKeywordBids || config.budgetAmount) {
+            if (hasPerKeywordBids) {
+                console.log('   💰 Using per-keyword bids:');
+                for (const [kw, bid] of Object.entries(config.keywordBids)) {
+                    console.log(`      • "${kw}": ₹${bid}`);
+                }
+            } else {
+                console.log(`   💰 Target bid amount: ₹${config.budgetAmount} (same for all)`);
+            }
 
             // Try multiple selectors for bid inputs
             // Selector 1: input with placeholder="Enter..."
@@ -386,6 +397,9 @@ async function fillCampaignForm(config, options = {}) {
 
             console.log(`   📊 Found ${bidCount} bid input field(s)`);
 
+            // Get the keywords that were selected (for mapping bids)
+            const selectedKeywords = keywordsToSelect.slice(0, bidCount);
+
             if (bidCount > 0) {
                 for (let i = 0; i < bidCount; i++) {
                     try {
@@ -393,25 +407,33 @@ async function fillCampaignForm(config, options = {}) {
                         if (await bidInput.isVisible({ timeout: 500 })) {
                             await bidInput.scrollIntoViewIfNeeded();
 
-                            // Read current bid value before changing (per-iteration check)
+                            // Read current bid value before changing
                             const currentBidValue = await bidInput.inputValue();
-                            if (currentBidValue) {
-                                console.log(`   📖 Keyword #${i + 1} current bid: ₹${currentBidValue}`);
+
+                            // Determine bid for this keyword
+                            const keyword = selectedKeywords[i] || `keyword_${i + 1}`;
+                            let targetBid;
+
+                            if (hasPerKeywordBids) {
+                                // Use per-keyword bid if available, fallback to budgetAmount or default
+                                targetBid = config.keywordBids[keyword] || config.budgetAmount || 100;
+                            } else {
+                                targetBid = config.budgetAmount;
                             }
 
                             // Clear and set new bid value
                             await bidInput.click();
                             await bidInput.fill('');
                             await delay(100);
-                            await bidInput.type(String(config.budgetAmount));
+                            await bidInput.type(String(targetBid));
 
-                            // Verify the bid was set correctly (per-iteration verification)
+                            // Verify the bid was set correctly
                             await delay(200);
                             const newBidValue = await bidInput.inputValue();
-                            if (newBidValue === String(config.budgetAmount)) {
-                                console.log(`   ✓ Keyword bid #${i + 1}: ₹${currentBidValue || '0'} → ₹${config.budgetAmount} (verified)`);
+                            if (newBidValue === String(targetBid)) {
+                                console.log(`   ✓ "${keyword}": ₹${currentBidValue || '0'} → ₹${targetBid} (verified)`);
                             } else {
-                                console.log(`   ⚠ Keyword bid #${i + 1}: Set to ₹${config.budgetAmount}, but value shows ₹${newBidValue}`);
+                                console.log(`   ⚠ "${keyword}": Set to ₹${targetBid}, but value shows ₹${newBidValue}`);
                             }
                             await delay(100);
                         }
