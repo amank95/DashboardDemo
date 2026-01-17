@@ -15,6 +15,7 @@ const BidOptimizerForm: React.FC = () => {
     const [minBid, setMinBid] = useState<number>(100);
     const [maxBid, setMaxBid] = useState<number>(50000);
     const [generateReport, setGenerateReport] = useState<boolean>(false);
+    const [useVisualRanking, setUseVisualRanking] = useState<boolean>(false);
 
     // Campaign config
     const [keywords, setKeywords] = useState<string[]>(['birthday', 'balloon']);
@@ -62,7 +63,8 @@ const BidOptimizerForm: React.FC = () => {
                     startBid,
                     minBid,
                     maxBid,
-                    keywords
+                    keywords,
+                    useVisualRanking
                 })
             });
 
@@ -141,6 +143,7 @@ const BidOptimizerForm: React.FC = () => {
         setMinBid(100);
         setMaxBid(50000);
         setGenerateReport(false);
+        setUseVisualRanking(false);
         setKeywords(['birthday', 'balloon']);
         setConsoleOutput([]);
         setStatus('idle');
@@ -214,8 +217,8 @@ const BidOptimizerForm: React.FC = () => {
                             {processSteps.map((step, index) => (
                                 <React.Fragment key={step.num}>
                                     <div className={`flex items-center justify-center w-8 h-8 rounded-full text-sm font-medium transition-colors ${currentStep >= step.num
-                                            ? 'bg-green-500 text-white'
-                                            : 'bg-gray-100 text-gray-400'
+                                        ? 'bg-green-500 text-white'
+                                        : 'bg-gray-100 text-gray-400'
                                         }`}>
                                         {step.num}
                                     </div>
@@ -358,6 +361,17 @@ const BidOptimizerForm: React.FC = () => {
                                     disabled={isRunning}
                                 />
                                 📄 Generate PDF Report
+                            </label>
+
+                            <label className="flex items-center text-sm text-gray-600 cursor-pointer mt-2">
+                                <input
+                                    type="checkbox"
+                                    checked={useVisualRanking}
+                                    onChange={(e) => setUseVisualRanking(e.target.checked)}
+                                    className="w-4 h-4 rounded border-gray-300 text-green-600 focus:ring-green-500 mr-2"
+                                    disabled={isRunning}
+                                />
+                                🖥️ Show Visual Ranking Check
                             </label>
                         </div>
                     </div>

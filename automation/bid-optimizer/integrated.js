@@ -9,6 +9,7 @@ const config = require('./config');
 const RankingSimulator = require('./ranking-simulator');
 const BinarySearchStrategy = require('./binary-search');
 const ReportGenerator = require('./report-generator');
+const RankingChecker = require('./ranking-checker');
 const { runCampaignAutomation } = require('../campaign-form-automation');
 
 class IntegratedBidOptimizer {
@@ -23,6 +24,16 @@ class IntegratedBidOptimizer {
         );
         this.results = [];
         this.runId = Date.now();
+
+        // Visual ranking checker (shows browser window for rank checks)
+        this.useVisualRanking = options.useVisualRanking || false;
+        if (this.useVisualRanking) {
+            this.rankingChecker = new RankingChecker({
+                visualDuration: options.visualDuration || 2000,
+                slowMo: options.slowMo || 50
+            });
+            console.log('🖥️  Visual ranking mode enabled - browser will open for rank checks');
+        }
     }
 
     /**
@@ -125,7 +136,23 @@ class IntegratedBidOptimizer {
                 }
 
                 // Get ranking for this keyword
-                const rankResult = this.simulator.getRanking(keyword, currentBids[keyword]);
+                let rankResult;
+
+                // First get the simulated rank
+                const simulatedResult = this.simulator.getRanking(keyword, currentBids[keyword]);
+
+                if (this.useVisualRanking && this.rankingChecker) {
+                    // Show visual ranking check in browser window
+                    console.log(`\n   🖥️  Opening visual ranking check window...`);
+                    rankResult = await this.rankingChecker.checkRanking(
+                        keyword,
+                        currentBids[keyword],
+                        simulatedResult.rank  // Pass simulated rank to display
+                    );
+                } else {
+                    rankResult = simulatedResult;
+                }
+
                 console.log(`   ${rankResult.message}`);
 
                 // Calculate next bid for this keyword
@@ -276,6 +303,7 @@ async function main() {
     const args = process.argv.slice(2);
     const dryRun = args.includes('--dry-run') || args.includes('-d');
     const generateReport = args.includes('--report') || args.includes('-r');
+    const useVisualRanking = args.includes('--visual-ranking') || args.includes('-v');
 
     // Parse command line arguments
     const getArg = (name) => {
@@ -295,11 +323,12 @@ async function main() {
     console.log('╚════════════════════════════════════════════════════════════╝\n');
 
     console.log('📋 Usage: node integrated.js [options]');
-    console.log('   --dry-run, -d     Run without browser automation');
-    console.log('   --start-bid=N     Set starting bid (default: midpoint)');
-    console.log('   --min-bid=N       Set minimum bid (default: 100)');
-    console.log('   --max-bid=N       Set maximum bid (default: 50000)');
-    console.log('   --report, -r      Generate report file\n');
+    console.log('   --dry-run, -d        Run without browser automation');
+    console.log('   --visual-ranking, -v Show visual ranking check browser window');
+    console.log('   --start-bid=N        Set starting bid (default: midpoint)');
+    console.log('   --min-bid=N          Set minimum bid (default: 100)');
+    console.log('   --max-bid=N          Set maximum bid (default: 50000)');
+    console.log('   --report, -r         Generate report file\n');
 
     if (dryRun) {
         console.log('🔸 Running in DRY RUN mode (no actual browser automation)\n');
@@ -307,12 +336,17 @@ async function main() {
         console.log('🔹 Running in LIVE mode (will open browser and submit campaigns)\n');
     }
 
-    // Build config with custom bid range
+    // Build config with custom bid range and visual ranking
     const optimizerConfig = {
-        RANKING_CHECK_INTERVAL: dryRun ? 100 : 2000
+        RANKING_CHECK_INTERVAL: dryRun ? 100 : 2000,
+        useVisualRanking: useVisualRanking
     };
     if (minBid) optimizerConfig.MIN_BID = minBid;
     if (maxBid) optimizerConfig.MAX_BID = maxBid;
+
+    if (useVisualRanking) {
+        console.log('🖥️  Visual ranking mode enabled - browser will open for rank checks\n');
+    }
 
     const optimizer = new IntegratedBidOptimizer(optimizerConfig);
 

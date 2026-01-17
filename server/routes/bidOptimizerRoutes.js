@@ -23,7 +23,8 @@ router.post('/run', (req, res) => {
         campaignName,
         overallBudget,
         startDate,
-        endDate
+        endDate,
+        useVisualRanking = false  // Show visual ranking check browser
     } = req.body;
 
     const runId = Date.now().toString();
@@ -36,6 +37,7 @@ router.post('/run', (req, res) => {
     if (startBid) args.push(`--start-bid=${startBid}`);
     if (minBid) args.push(`--min-bid=${minBid}`);
     if (maxBid) args.push(`--max-bid=${maxBid}`);
+    if (useVisualRanking) args.push('--visual-ranking');
 
     const scriptPath = path.join(__dirname, '../../automation/bid-optimizer/integrated.js');
 
