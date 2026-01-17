@@ -122,6 +122,8 @@ class IntegratedBidOptimizer {
             console.log('\n📈 RANK RESULTS:');
             const iterationResult = { iteration, keywords: {}, timestamp: new Date() };
 
+            // Collect non-converged keywords for batch processing
+            const keywordsToCheck = [];
             for (const keyword of keywords) {
                 // Skip if already converged
                 if (this.binarySearch.isConverged(keyword)) {
@@ -135,23 +137,39 @@ class IntegratedBidOptimizer {
                     continue;
                 }
 
-                // Get ranking for this keyword
-                let rankResult;
-
-                // First get the simulated rank
+                // Get simulated rank for this keyword
                 const simulatedResult = this.simulator.getRanking(keyword, currentBids[keyword]);
+                keywordsToCheck.push({
+                    keyword,
+                    bid: currentBids[keyword],
+                    simulatedRank: simulatedResult.rank,
+                    simulatedResult
+                });
+            }
 
-                if (this.useVisualRanking && this.rankingChecker) {
-                    // Show visual ranking check in browser window
-                    console.log(`\n   🖥️  Opening visual ranking check window...`);
-                    rankResult = await this.rankingChecker.checkRanking(
-                        keyword,
-                        currentBids[keyword],
-                        simulatedResult.rank  // Pass simulated rank to display
-                    );
-                } else {
-                    rankResult = simulatedResult;
+            // Perform visual ranking checks (multiple tabs) or regular checks
+            let rankResults = {};
+
+            if (this.useVisualRanking && this.rankingChecker && keywordsToCheck.length > 0) {
+                // Show visual ranking check in browser window with multiple tabs
+                console.log(`\n   🖥️  Opening ${keywordsToCheck.length} tabs for visual ranking checks...`);
+                const visualResults = await this.rankingChecker.checkMultipleRankings(keywordsToCheck);
+
+                // Map results by keyword
+                for (const result of visualResults) {
+                    rankResults[result.keyword] = result;
                 }
+            } else {
+                // Use simulated results directly
+                for (const check of keywordsToCheck) {
+                    rankResults[check.keyword] = check.simulatedResult;
+                }
+            }
+
+            // Process results and calculate next bids
+            for (const check of keywordsToCheck) {
+                const keyword = check.keyword;
+                const rankResult = rankResults[keyword];
 
                 console.log(`   ${rankResult.message}`);
 

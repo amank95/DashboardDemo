@@ -305,7 +305,7 @@ class RankingChecker {
     }
 
     /**
-     * Check ranking with visual browser display
+     * Check ranking with visual browser display (single keyword)
      * @param {string} keyword - The keyword to check
      * @param {number} bid - Current bid amount
      * @param {number} simulatedRank - The simulated rank result to display
@@ -315,16 +315,18 @@ class RankingChecker {
         console.log(`   🖥️  Opening visual ranking check for "${keyword}"...`);
 
         try {
-            // Launch visible browser
-            this.browser = await chromium.launch({
-                headless: false,
-                slowMo: this.options.slowMo,
-                args: ['--window-size=1100,800']
-            });
+            // Launch visible browser if not already open
+            if (!this.browser) {
+                this.browser = await chromium.launch({
+                    headless: false,
+                    slowMo: this.options.slowMo,
+                    args: ['--window-size=1100,800']
+                });
 
-            this.context = await this.browser.newContext({
-                viewport: { width: 1050, height: 750 }
-            });
+                this.context = await this.browser.newContext({
+                    viewport: { width: 1050, height: 750 }
+                });
+            }
 
             const page = await this.context.newPage();
 
@@ -336,9 +338,8 @@ class RankingChecker {
             await this.delay(2500);  // Wait for "checking" animation
             await this.delay(this.options.visualDuration);  // Show result
 
-            // Close browser
-            await this.browser.close();
-            this.browser = null;
+            // Close the tab
+            await page.close();
 
             console.log(`   ✅ Visual check complete: Rank #${simulatedRank}`);
 
@@ -353,6 +354,68 @@ class RankingChecker {
 
         } catch (error) {
             console.error(`   ❌ Visual ranking check failed: ${error.message}`);
+            throw error;
+        }
+    }
+
+    /**
+     * Check multiple keywords simultaneously with separate tabs
+     * @param {Array} keywordChecks - Array of { keyword, bid, simulatedRank }
+     * @returns {Array} - Array of results
+     */
+    async checkMultipleRankings(keywordChecks) {
+        console.log(`   🖥️  Opening ${keywordChecks.length} tabs for visual ranking checks...`);
+
+        try {
+            // Launch visible browser
+            this.browser = await chromium.launch({
+                headless: false,
+                slowMo: this.options.slowMo,
+                args: ['--window-size=1200,800']
+            });
+
+            this.context = await this.browser.newContext({
+                viewport: { width: 1050, height: 750 }
+            });
+
+            const pages = [];
+            const results = [];
+
+            // Open a tab for each keyword
+            for (const check of keywordChecks) {
+                const page = await this.context.newPage();
+                const html = this._generateDemoHTML(check.keyword, check.bid, check.simulatedRank);
+                await page.setContent(html);
+                pages.push({ page, ...check });
+                console.log(`   📑 Opened tab for "${check.keyword}" (Bid: ₹${check.bid})`);
+                await this.delay(300); // Small delay between tabs
+            }
+
+            // Wait for all animations to complete
+            await this.delay(2500);  // Wait for "checking" animation
+            await this.delay(this.options.visualDuration);  // Show results
+
+            // Collect results
+            for (const { page, keyword, bid, simulatedRank } of pages) {
+                results.push({
+                    rank: simulatedRank,
+                    keyword,
+                    userBid: bid,
+                    message: simulatedRank === 1
+                        ? `🏆 "${keyword}": Rank #1 achieved with ₹${bid}!`
+                        : `📈 "${keyword}": Rank #${simulatedRank}. Need higher bid for Rank #1 (you bid ₹${bid}).`
+                });
+            }
+
+            // Close browser
+            await this.browser.close();
+            this.browser = null;
+
+            console.log(`   ✅ All ${keywordChecks.length} visual checks complete`);
+            return results;
+
+        } catch (error) {
+            console.error(`   ❌ Visual ranking checks failed: ${error.message}`);
             if (this.browser) {
                 await this.browser.close();
                 this.browser = null;
