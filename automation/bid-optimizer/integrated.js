@@ -43,7 +43,7 @@ class IntegratedBidOptimizer {
      * @param {boolean} dryRun - If true, skip actual automation (just simulate)
      */
     async optimize(campaignConfig, dryRun = false) {
-        const keywords = campaignConfig.keywords || ['birthday', 'balloon'];
+        const keywords = campaignConfig.keywords || ['cocktail mixers', 'tonic water'];
 
         console.log('\n' + '═'.repeat(60));
         console.log('🚀 PER-KEYWORD BID OPTIMIZER');
@@ -394,12 +394,12 @@ async function main() {
         cities: ['Mumbai', 'Bangalore', 'New Delhi'],
 
         // Products
-        products: ['Nike Air Max'],
+        products: ['Tipsy Tiger Fantastic Orange Lemonade'],
         selectAllProducts: false,
 
         // Targeting
         keywordTargeting: true,
-        keywords: ['birthday', 'balloon'],  // Each keyword optimized independently
+        keywords: ['cocktail mixers', 'tonic water'],  // Each keyword optimized independently
         categoryTargeting: true,
 
         // Budget

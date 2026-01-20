@@ -7,22 +7,22 @@ interface TargetingOptionsStepProps {
 }
 
 const SUGGESTED_KEYWORDS = [
-    { text: 'birthday', searchVolume: 515350, trending: false, smartMatchBid: 12 },
-    { text: 'birthday decoration', searchVolume: 277532, trending: false, smartMatchBid: 15 },
-    { text: 'balloon', searchVolume: 273685, trending: false, smartMatchBid: 10 },
-    { text: 'christmas decoration', searchVolume: 23319, trending: true, smartMatchBid: 20 },
-    { text: 'anniversary decoration kit', searchVolume: 22011, trending: true, smartMatchBid: 25 },
-    { text: 'happy anniversary banner', searchVolume: 15683, trending: true, smartMatchBid: 14 },
-    { text: 'anniversary decoration', searchVolume: 6745, trending: true, smartMatchBid: 18 },
-    { text: 'haldi decoration backdrop', searchVolume: 3212, trending: true, smartMatchBid: 22 },
-    { text: 'anniversary decoration item', searchVolume: 1137, trending: true, smartMatchBid: 16 },
-    { text: 'balloons', searchVolume: 120112, trending: false, smartMatchBid: 11 },
+    { text: 'cocktail mixers', searchVolume: 515350, trending: false, smartMatchBid: 12 },
+    { text: 'cocktail mix', searchVolume: 277532, trending: false, smartMatchBid: 15 },
+    { text: 'tonic water', searchVolume: 273685, trending: false, smartMatchBid: 10 },
+    { text: 'mocktail mix', searchVolume: 23319, trending: true, smartMatchBid: 20 },
+    { text: 'orange lemonade', searchVolume: 22011, trending: true, smartMatchBid: 25 },
+    { text: 'lemon mint drink', searchVolume: 15683, trending: true, smartMatchBid: 14 },
+    { text: 'premium tonic water', searchVolume: 6745, trending: true, smartMatchBid: 18 },
+    { text: 'mojito mix', searchVolume: 3212, trending: true, smartMatchBid: 22 },
+    { text: 'low calorie mixer', searchVolume: 1137, trending: true, smartMatchBid: 16 },
+    { text: 'picante cocktail', searchVolume: 120112, trending: false, smartMatchBid: 11 },
 ];
 
 const SUGGESTED_CATEGORIES: CategoryTarget[] = [
-    { id: 'c1', name: 'Party Essentials', visits: 15471, suggestedBidRange: '₹1155 - ₹1271', selected: false },
-    { id: 'c2', name: 'Party & Festive Needs', visits: 88928, suggestedBidRange: '₹3540 - ₹3894', selected: false },
-    { id: 'c3', name: 'Home Decor', visits: 45201, suggestedBidRange: '₹950 - ₹1100', selected: false },
+    { id: 'c1', name: 'Beverages', visits: 15471, suggestedBidRange: '₹1155 - ₹1271', selected: false },
+    { id: 'c2', name: 'Cocktail Mixers', visits: 88928, suggestedBidRange: '₹3540 - ₹3894', selected: false },
+    { id: 'c3', name: 'Soft Drinks & Mixers', visits: 45201, suggestedBidRange: '₹950 - ₹1100', selected: false },
 ];
 
 const TargetingOptionsStep: React.FC<TargetingOptionsStepProps> = ({ formData, updateFormData }) => {

@@ -8,14 +8,10 @@ interface ProductDetailsStepProps {
 
 // Mock Data
 const AVAILABLE_PRODUCTS: Product[] = [
-    { id: 'p1', name: 'Nike Air Max', variants: 3, brand: 'Nike', category: 'Shoes' },
-    { id: 'p2', name: 'Adidas Ultraboost', variants: 5, brand: 'Adidas', category: 'Shoes' },
-    { id: 'p3', name: 'Puma T-Shirt', variants: 4, brand: 'Puma', category: 'Apparel' },
-    { id: 'p4', name: 'Nike Hoodie', variants: 2, brand: 'Nike', category: 'Apparel' },
-    { id: 'p5', name: 'Reebok Running Shoes', variants: 3, brand: 'Reebok', category: 'Shoes' },
-    { id: 'p6', name: 'Sony Headphones', variants: 1, brand: 'Sony', category: 'Electronics' },
-    { id: 'p7', name: 'Samsung Galaxy S23', variants: 2, brand: 'Samsung', category: 'Electronics' },
-    { id: 'p8', name: 'Apple iPhone 15', variants: 3, brand: 'Apple', category: 'Electronics' },
+    { id: 'p1', name: 'Tipsy Tiger Fantastic Orange Lemonade', variants: 3, brand: 'Tipsy Tiger', category: 'Beverages' },
+    { id: 'p2', name: 'Tipsy Tiger Spicy Picante Cocktail Mix', variants: 5, brand: 'Tipsy Tiger', category: 'Beverages' },
+    { id: 'p3', name: 'Tipsy Tiger Premium Tonic Water (Low Calorie & Sugar)', variants: 4, brand: 'Tipsy Tiger', category: 'Beverages' },
+    { id: 'p4', name: 'Tipsy Tiger Mojito Mocktail Cocktail Mix With Lemon & Mint', variants: 2, brand: 'Tipsy Tiger', category: 'Beverages' },
 ];
 
 const ProductDetailsStep: React.FC<ProductDetailsStepProps> = ({ formData, updateFormData }) => {
@@ -171,19 +167,14 @@ const ProductDetailsStep: React.FC<ProductDetailsStepProps> = ({ formData, updat
                                 <label className="block text-xs font-medium text-gray-700 mb-1">Select brands</label>
                                 <select className="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm text-gray-500 focus:ring-2 focus:ring-green-500 outline-none appearance-none bg-white">
                                     <option>Select from brands</option>
-                                    <option>Nike</option>
-                                    <option>Adidas</option>
-                                    <option>Puma</option>
-                                    <option>Reebok</option>
+                                    <option>Tipsy Tiger</option>
                                 </select>
                             </div>
                             <div>
                                 <label className="block text-xs font-medium text-gray-700 mb-1">Select categories</label>
                                 <select className="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm text-gray-500 focus:ring-2 focus:ring-green-500 outline-none appearance-none bg-white">
                                     <option>Select from categories</option>
-                                    <option>Shoes</option>
-                                    <option>Apparel</option>
-                                    <option>Electronics</option>
+                                    <option>Beverages</option>
                                 </select>
                             </div>
                         </div>

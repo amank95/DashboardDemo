@@ -25,7 +25,7 @@ const ReportsPage: React.FC = () => {
         setError(null);
 
         try {
-            const response = await fetch('http://localhost:5000/api/reports');
+            const response = await fetch('http://localhost:5001/api/reports');
             const data = await response.json();
 
             if (data.reports) {
@@ -42,12 +42,12 @@ const ReportsPage: React.FC = () => {
     };
 
     const openReport = (report: Report) => {
-        window.open(`http://localhost:5000${report.path}`, '_blank');
+        window.open(`http://localhost:5001${report.path}`, '_blank');
     };
 
     const deleteReport = async (filename: string) => {
         try {
-            const response = await fetch(`http://localhost:5000/api/reports/${encodeURIComponent(filename)}`, {
+            const response = await fetch(`http://localhost:5001/api/reports/${encodeURIComponent(filename)}`, {
                 method: 'DELETE'
             });
 
@@ -192,8 +192,8 @@ const ReportsPage: React.FC = () => {
                                     </td>
                                     <td className="px-6 py-4">
                                         <span className={`px-2 py-1 text-xs font-medium rounded ${report.type === 'pdf'
-                                                ? 'bg-red-100 text-red-700'
-                                                : 'bg-blue-100 text-blue-700'
+                                            ? 'bg-red-100 text-red-700'
+                                            : 'bg-blue-100 text-blue-700'
                                             }`}>
                                             {report.type.toUpperCase()}
                                         </span>

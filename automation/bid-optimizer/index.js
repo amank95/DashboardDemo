@@ -225,7 +225,7 @@ async function main() {
     try {
         const result = await optimizer.testRun({
             productId: 'NIKE-001',
-            productName: 'Nike Air Max',
+            productName: 'Tipsy Tiger Fantastic Orange Lemonade',
             cities: ['Mumbai', 'Bangalore', 'New Delhi'],
             keywords: ['running shoes', 'nike', 'sports']
         });

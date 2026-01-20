@@ -33,12 +33,12 @@ const campaignConfig = {
     cities: ['Mumbai', 'Bangalore', 'New Delhi'], // Cities to select
 
     // Step 3: Product Details
-    // Available products: 'Nike Air Max', 'Adidas Ultraboost', 'Puma T-Shirt', 
-    // 'Nike Hoodie', 'Reebok Running Shoes', 'Sony Headphones', 'Samsung Galaxy S23'
-    products: ['Nike Air Max', 'Adidas Ultraboost', 'Sony Headphones'], // Products to select by name
+    // Available products: 'Tipsy Tiger Fantastic Orange Lemonade', 'Tipsy Tiger Spicy Picante Cocktail Mix', 
+    // 'Tipsy Tiger Premium Tonic Water (Low Calorie & Sugar)', 'Tipsy Tiger Mojito Mocktail Cocktail Mix With Lemon & Mint'
+    products: ['Tipsy Tiger Fantastic Orange Lemonade', 'Tipsy Tiger Spicy Picante Cocktail Mix'], // Products to select by name
     selectAllProducts: false, // Set to true to select all products
-    brands: ['Nike', 'Adidas'], // Filter by brands: Nike, Adidas, Puma, Reebok
-    categories: ['Shoes'], // Filter by categories: Shoes, Apparel, Electronics
+    brands: ['Tipsy Tiger'], // Filter by brands: Tipsy Tiger
+    categories: ['Beverages'], // Filter by categories: Beverages
 
     // Step 4: Targeting Options
     keywordTargeting: true,
@@ -285,7 +285,7 @@ async function fillCampaignForm(config, options = {}) {
         // Must use Playwright's click method to trigger React synthetic events
         const keywordsToSelect = config.keywords.length > 0
             ? config.keywords
-            : ['birthday', 'balloon']; // Default fallback keywords
+            : ['cocktail mixers', 'tonic water']; // Default fallback keywords
 
         let keywordsSelected = 0;
 

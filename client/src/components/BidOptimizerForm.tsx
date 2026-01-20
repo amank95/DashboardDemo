@@ -18,7 +18,7 @@ const BidOptimizerForm: React.FC = () => {
     const [useVisualRanking, setUseVisualRanking] = useState<boolean>(false);
 
     // Campaign config
-    const [keywords, setKeywords] = useState<string[]>(['birthday', 'balloon']);
+    const [keywords, setKeywords] = useState<string[]>(['cocktail mixers', 'tonic water']);
     const [newKeyword, setNewKeyword] = useState<string>('');
 
     // Run state
@@ -54,7 +54,7 @@ const BidOptimizerForm: React.FC = () => {
         setCurrentStep(1);
 
         try {
-            const response = await fetch('http://localhost:5000/api/bid-optimizer/run', {
+            const response = await fetch('http://localhost:5001/api/bid-optimizer/run', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -92,7 +92,7 @@ const BidOptimizerForm: React.FC = () => {
         }
 
         setCurrentStep(3);
-        const eventSource = new EventSource(`http://localhost:5000/api/bid-optimizer/stream/${id}`);
+        const eventSource = new EventSource(`http://localhost:5001/api/bid-optimizer/stream/${id}`);
         eventSourceRef.current = eventSource;
 
         eventSource.onmessage = (event) => {
@@ -125,7 +125,7 @@ const BidOptimizerForm: React.FC = () => {
         if (!runId) return;
 
         try {
-            await fetch(`http://localhost:5000/api/bid-optimizer/stop/${runId}`, {
+            await fetch(`http://localhost:5001/api/bid-optimizer/stop/${runId}`, {
                 method: 'POST'
             });
             setStatus('stopped');
@@ -144,7 +144,7 @@ const BidOptimizerForm: React.FC = () => {
         setMaxBid(50000);
         setGenerateReport(false);
         setUseVisualRanking(false);
-        setKeywords(['birthday', 'balloon']);
+        setKeywords(['cocktail mixers', 'tonic water']);
         setConsoleOutput([]);
         setStatus('idle');
         setRunId(null);

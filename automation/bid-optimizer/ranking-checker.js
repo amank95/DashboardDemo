@@ -36,8 +36,23 @@ class RankingChecker {
         ];
 
         // Insert the target product at the specified rank position
+        // Use Tipsy Tiger product name based on keyword
+        const productNames = {
+            'cocktail mixers': 'Tipsy Tiger Spicy Picante Cocktail Mix',
+            'cocktail mix': 'Tipsy Tiger Spicy Picante Cocktail Mix',
+            'tonic water': 'Tipsy Tiger Premium Tonic Water',
+            'mocktail mix': 'Tipsy Tiger Mojito Mocktail Cocktail Mix',
+            'orange lemonade': 'Tipsy Tiger Fantastic Orange Lemonade',
+            'lemon mint drink': 'Tipsy Tiger Mojito Mocktail Cocktail Mix With Lemon & Mint',
+            'premium tonic water': 'Tipsy Tiger Premium Tonic Water (Low Calorie & Sugar)',
+            'mojito mix': 'Tipsy Tiger Mojito Mocktail Cocktail Mix',
+            'low calorie mixer': 'Tipsy Tiger Premium Tonic Water (Low Calorie & Sugar)',
+            'picante cocktail': 'Tipsy Tiger Spicy Picante Cocktail Mix'
+        };
+        const productName = productNames[keyword.toLowerCase()] || 'Tipsy Tiger Fantastic Orange Lemonade';
+
         const targetProduct = {
-            name: `Your Product (${keyword})`,
+            name: productName,
             weight: 'Bid: ₹' + bid.toLocaleString(),
             price: bid,
             time: '8 MINS',
