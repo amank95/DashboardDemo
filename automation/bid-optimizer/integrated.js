@@ -394,12 +394,12 @@ async function main() {
         cities: ['Mumbai', 'Bangalore', 'New Delhi'],
 
         // Products
-        products: ['Tipsy Tiger Fantastic Orange Lemonade'],
+        products: ['Pop Boba - Strawberry'],
         selectAllProducts: false,
 
         // Targeting
         keywordTargeting: true,
-        keywords: ['cocktail mixers', 'tonic water'],  // Each keyword optimized independently
+        keywords: ['pop boba', 'fruit boba'],  // Each keyword optimized independently
         categoryTargeting: true,
 
         // Budget

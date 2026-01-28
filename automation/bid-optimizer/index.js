@@ -224,10 +224,10 @@ async function main() {
 
     try {
         const result = await optimizer.testRun({
-            productId: 'NIKE-001',
-            productName: 'Tipsy Tiger Fantastic Orange Lemonade',
+            productId: 'DOBRA-001',
+            productName: 'Pop Boba - Strawberry',
             cities: ['Mumbai', 'Bangalore', 'New Delhi'],
-            keywords: ['running shoes', 'nike', 'sports']
+            keywords: ['pop boba', 'fruit boba', 'beverages']
         });
 
         console.log('\n📋 Final Result:');

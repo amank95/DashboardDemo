@@ -25,31 +25,37 @@ class RankingChecker {
     _generateDemoHTML(keyword, bid, rank) {
         // Generate mock product data - target product at the specified rank position
         const products = [
-            { name: 'Go Daily Milk', weight: '1 l', price: 65, oldPrice: 75, time: '8 MINS', isAd: true, img: 'https://cdn.grofers.com/cdn-cgi/image/f=auto,fit=scale-down,q=70,metadata=none,w=270/app/images/products/sliding_image/271654a.jpg' },
-            { name: 'Amul Taaza Toned Milk', weight: '500 ml', price: 29, time: '8 MINS', img: 'https://cdn.grofers.com/cdn-cgi/image/f=auto,fit=scale-down,q=70,metadata=none,w=270/app/images/products/sliding_image/4738a.jpg' },
-            { name: 'Amul Cow Milk', weight: '500 ml', price: 29, time: '8 MINS', img: 'https://cdn.grofers.com/cdn-cgi/image/f=auto,fit=scale-down,q=70,metadata=none,w=270/app/images/products/sliding_image/35122a.jpg' },
-            { name: 'Gokul Full Cream Milk', weight: '500 ml', price: 37, time: '8 MINS', img: 'https://cdn.grofers.com/cdn-cgi/image/f=auto,fit=scale-down,q=70,metadata=none,w=270/app/images/products/sliding_image/391599a.jpg' },
-            { name: 'Pride of Cows Farm Cow Milk', weight: '500 ml', price: 85, time: '8 MINS', img: 'https://cdn.grofers.com/cdn-cgi/image/f=auto,fit=scale-down,q=70,metadata=none,w=270/app/images/products/sliding_image/452979a.jpg' },
-            { name: 'Amul Taaza Homogenised Toned Milk', weight: '1 l', price: 75, time: '8 MINS', img: 'https://cdn.grofers.com/cdn-cgi/image/f=auto,fit=scale-down,q=70,metadata=none,w=270/app/images/products/sliding_image/4738a.jpg' },
-            { name: 'Gokul Full Cream Milk', weight: '1 l', price: 74, time: '8 MINS', img: 'https://cdn.grofers.com/cdn-cgi/image/f=auto,fit=scale-down,q=70,metadata=none,w=270/app/images/products/sliding_image/391599a.jpg' },
-            { name: 'Country Delight Cow Fresh Milk', weight: '450 ml', price: 44, oldPrice: 49, time: '8 MINS', isAd: true, img: 'https://cdn.grofers.com/cdn-cgi/image/f=auto,fit=scale-down,q=70,metadata=none,w=270/app/images/products/sliding_image/411215a.jpg' },
+            { name: 'Paper Boat Swing Zesty Pomegranate', weight: '600 ml', price: 40, time: '8 MINS', isAd: true, img: 'https://cdn.grofers.com/cdn-cgi/image/f=auto,fit=scale-down,q=70,metadata=none,w=270/app/images/products/sliding_image/384949a.jpg' },
+            { name: 'Raw Pressery Coconut Water', weight: '200 ml', price: 80, time: '12 MINS', img: 'https://cdn.grofers.com/cdn-cgi/image/f=auto,fit=scale-down,q=70,metadata=none,w=270/app/images/products/sliding_image/112674a.jpg' },
+            { name: 'Coca-Cola Soft Drink (750 ml)', weight: '750 ml', price: 45, time: '9 MINS', img: 'https://cdn.grofers.com/cdn-cgi/image/f=auto,fit=scale-down,q=70,metadata=none,w=270/app/images/products/sliding_image/160a.jpg' },
+            { name: 'Real Fruit Power Masala Mixed Fruit', weight: '1 l', price: 110, time: '15 MINS', img: 'https://cdn.grofers.com/cdn-cgi/image/f=auto,fit=scale-down,q=70,metadata=none,w=270/app/images/products/sliding_image/19532a.jpg' },
+            { name: 'Lay\'s India\'s Magic Masala Chips', weight: '50 g', price: 20, time: '8 MINS', img: 'https://cdn.grofers.com/cdn-cgi/image/f=auto,fit=scale-down,q=70,metadata=none,w=270/app/images/products/sliding_image/11756a.jpg' },
+            { name: 'Doritos Nacho Cheese Tortilla Chips', weight: '44 g', price: 30, time: '10 MINS', img: 'https://cdn.grofers.com/cdn-cgi/image/f=auto,fit=scale-down,q=70,metadata=none,w=270/app/images/products/sliding_image/326857a.jpg' },
+            { name: 'Thums Up Soft Drink', weight: '750 ml', price: 45, time: '8 MINS', img: 'https://cdn.grofers.com/cdn-cgi/image/f=auto,fit=scale-down,q=70,metadata=none,w=270/app/images/products/sliding_image/162a.jpg' },
+            { name: 'Too Yumm! Karare Munchy Masala', weight: '45 g', price: 20, time: '8 MINS', isAd: true, img: 'https://cdn.grofers.com/cdn-cgi/image/f=auto,fit=scale-down,q=70,metadata=none,w=270/app/images/products/sliding_image/439719a.jpg' },
         ];
 
         // Insert the target product at the specified rank position
-        // Use Tipsy Tiger product name based on keyword
+        // Use Dobra product name based on keyword
         const productNames = {
-            'cocktail mixers': 'Tipsy Tiger Spicy Picante Cocktail Mix',
-            'cocktail mix': 'Tipsy Tiger Spicy Picante Cocktail Mix',
-            'tonic water': 'Tipsy Tiger Premium Tonic Water',
-            'mocktail mix': 'Tipsy Tiger Mojito Mocktail Cocktail Mix',
-            'orange lemonade': 'Tipsy Tiger Fantastic Orange Lemonade',
-            'lemon mint drink': 'Tipsy Tiger Mojito Mocktail Cocktail Mix With Lemon & Mint',
-            'premium tonic water': 'Tipsy Tiger Premium Tonic Water (Low Calorie & Sugar)',
-            'mojito mix': 'Tipsy Tiger Mojito Mocktail Cocktail Mix',
-            'low calorie mixer': 'Tipsy Tiger Premium Tonic Water (Low Calorie & Sugar)',
-            'picante cocktail': 'Tipsy Tiger Spicy Picante Cocktail Mix'
+            'boba drink': 'Pop Boba - Strawberry',
+            'pop boba': 'Pop Boba - Strawberry',
+            'fruit boba': 'Pop Boba - Lychee',
+            'flavoured boba': 'Pop Boba - Mango',
+            'goli soda': 'Pop Goli - Apple Mojito',
+            'pop goli': 'Pop Goli - Apple Mojito',
+            'flavoured soda': 'Pop Goli - Blueberry',
+            'masala soda': 'Pop Goli - Masala Cola',
+            'mango drink': 'Pop Boba - Mango',
+            'lychee drink': 'Pop Boba - Lychee',
+            'strawberry drink': 'Pop Boba - Strawberry',
+            'coconut drink': 'Coco Poco - Tender Coconut',
+            'tender coconut drink': 'Coco Poco - Tender Coconut',
+            'chips': 'Tapioca Chips - Smoky Barbeque',
+            'tapioca chips': 'Tapioca Chips - Extra Cheesy',
+            'snacks': 'Tapioca Chips - Desi Wasabi'
         };
-        const productName = productNames[keyword.toLowerCase()] || 'Tipsy Tiger Fantastic Orange Lemonade';
+        const productName = productNames[keyword.toLowerCase()] || 'Pop Boba - Strawberry';
 
         const targetProduct = {
             name: productName,
@@ -57,7 +63,7 @@ class RankingChecker {
             price: bid,
             time: '8 MINS',
             isTarget: true,
-            img: 'https://cdn.grofers.com/cdn-cgi/image/f=auto,fit=scale-down,q=70,metadata=none,w=270/app/images/products/sliding_image/4738a.jpg'
+            img: 'https://dobraindia.com/cdn/shop/files/DSC06830.jpg?v=1716373307&width=360' // Using a generic placeholder or the one from website if accessible, but for now specific URL
         };
 
         // Insert target at rank-1 position (0-indexed)

@@ -7,22 +7,22 @@ interface TargetingOptionsStepProps {
 }
 
 const SUGGESTED_KEYWORDS = [
-    { text: 'cocktail mixers', searchVolume: 515350, trending: false, smartMatchBid: 12 },
-    { text: 'cocktail mix', searchVolume: 277532, trending: false, smartMatchBid: 15 },
-    { text: 'tonic water', searchVolume: 273685, trending: false, smartMatchBid: 10 },
-    { text: 'mocktail mix', searchVolume: 23319, trending: true, smartMatchBid: 20 },
-    { text: 'orange lemonade', searchVolume: 22011, trending: true, smartMatchBid: 25 },
-    { text: 'lemon mint drink', searchVolume: 15683, trending: true, smartMatchBid: 14 },
-    { text: 'premium tonic water', searchVolume: 6745, trending: true, smartMatchBid: 18 },
-    { text: 'mojito mix', searchVolume: 3212, trending: true, smartMatchBid: 22 },
-    { text: 'low calorie mixer', searchVolume: 1137, trending: true, smartMatchBid: 16 },
-    { text: 'picante cocktail', searchVolume: 120112, trending: false, smartMatchBid: 11 },
+    { text: 'pop boba', searchVolume: 515350, trending: true, smartMatchBid: 12 },
+    { text: 'fruit boba', searchVolume: 277532, trending: true, smartMatchBid: 15 },
+    { text: 'tapioca chips', searchVolume: 273685, trending: false, smartMatchBid: 10 },
+    { text: 'snacks', searchVolume: 23319, trending: true, smartMatchBid: 20 },
+    { text: 'beverages', searchVolume: 22011, trending: true, smartMatchBid: 25 },
+    { text: 'healthy chips', searchVolume: 15683, trending: true, smartMatchBid: 14 },
+    { text: 'spicy chips', searchVolume: 6745, trending: true, smartMatchBid: 18 },
+    { text: 'mocktail mix', searchVolume: 3212, trending: false, smartMatchBid: 22 },
+    { text: 'bubble tea', searchVolume: 1137, trending: true, smartMatchBid: 16 },
+    { text: 'dobra', searchVolume: 120112, trending: true, smartMatchBid: 11 },
 ];
 
 const SUGGESTED_CATEGORIES: CategoryTarget[] = [
     { id: 'c1', name: 'Beverages', visits: 15471, suggestedBidRange: '₹1155 - ₹1271', selected: false },
-    { id: 'c2', name: 'Cocktail Mixers', visits: 88928, suggestedBidRange: '₹3540 - ₹3894', selected: false },
-    { id: 'c3', name: 'Soft Drinks & Mixers', visits: 45201, suggestedBidRange: '₹950 - ₹1100', selected: false },
+    { id: 'c2', name: 'Confectionery', visits: 88928, suggestedBidRange: '₹3540 - ₹3894', selected: false },
+    { id: 'c3', name: 'Snacks', visits: 45201, suggestedBidRange: '₹950 - ₹1100', selected: false },
 ];
 
 const TargetingOptionsStep: React.FC<TargetingOptionsStepProps> = ({ formData, updateFormData }) => {

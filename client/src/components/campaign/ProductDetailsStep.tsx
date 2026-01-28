@@ -8,10 +8,34 @@ interface ProductDetailsStepProps {
 
 // Mock Data
 const AVAILABLE_PRODUCTS: Product[] = [
-    { id: 'p1', name: 'Tipsy Tiger Fantastic Orange Lemonade', variants: 3, brand: 'Tipsy Tiger', category: 'Beverages' },
-    { id: 'p2', name: 'Tipsy Tiger Spicy Picante Cocktail Mix', variants: 5, brand: 'Tipsy Tiger', category: 'Beverages' },
-    { id: 'p3', name: 'Tipsy Tiger Premium Tonic Water (Low Calorie & Sugar)', variants: 4, brand: 'Tipsy Tiger', category: 'Beverages' },
-    { id: 'p4', name: 'Tipsy Tiger Mojito Mocktail Cocktail Mix With Lemon & Mint', variants: 2, brand: 'Tipsy Tiger', category: 'Beverages' },
+    { id: 'p1', name: 'Pop Boba - Strawberry', variants: 3, brand: 'Dobra', category: 'Beverages' },
+    { id: 'p2', name: 'Pop Boba - Mango', variants: 5, brand: 'Dobra', category: 'Beverages' },
+    { id: 'p3', name: 'Pop Boba - Lychee', variants: 4, brand: 'Dobra', category: 'Beverages' },
+    { id: 'p4', name: 'Pop Goli - Apple Mojito', variants: 4, brand: 'Dobra', category: 'Beverages' },
+    { id: 'p5', name: 'Pop Goli - Blueberry', variants: 4, brand: 'Dobra', category: 'Beverages' },
+    { id: 'p6', name: 'Pop Goli - Rosa Apple(Paneer Soda)', variants: 4, brand: 'Dobra', category: 'Beverages' },
+    { id: 'p7', name: 'Pop Goli - Nimbu Masala', variants: 4, brand: 'Dobra', category: 'Beverages' },
+    { id: 'p8', name: 'Pop Goli - Masala Cola', variants: 4, brand: 'Dobra', category: 'Beverages' },
+    { id: 'p9', name: 'Pop Goli - Mango', variants: 4, brand: 'Dobra', category: 'Beverages' },
+    { id: 'p10', name: 'Pop Goli - Kokum Jeera', variants: 4, brand: 'Dobra', category: 'Beverages' },
+    { id: 'p11', name: 'Pop Goli - Grape', variants: 4, brand: 'Dobra', category: 'Beverages' },
+    { id: 'p12', name: 'Coco Poco - Mango', variants: 4, brand: 'Dobra', category: 'Beverages' },
+    { id: 'p13', name: 'Coco Poco - Tender Coconut', variants: 4, brand: 'Dobra', category: 'Beverages' },
+    { id: 'p14', name: 'Coco Poco - Green Apple', variants: 4, brand: 'Dobra', category: 'Beverages' },
+    { id: 'p15', name: 'Coco Poco - Lychee', variants: 4, brand: 'Dobra', category: 'Beverages' },
+    { id: 'p16', name: 'Coco Poco - Blueberry', variants: 4, brand: 'Dobra', category: 'Beverages' },
+    { id: 'p17', name: 'Coco Poco - Strawberry', variants: 4, brand: 'Dobra', category: 'Beverages' },
+    { id: 'p18', name: 'Cotton Candy - Cool Coffee', variants: 2, brand: 'Dobra', category: 'Confectionery' },
+    { id: 'p19', name: 'Cotton Candy - Sour Mango', variants: 2, brand: 'Dobra', category: 'Confectionery' },
+    { id: 'p20', name: 'Cotton Candy - Strawberry Blast', variants: 2, brand: 'Dobra', category: 'Confectionery' },
+    { id: 'p21', name: 'Cotton Candy - Bubblegum', variants: 2, brand: 'Dobra', category: 'Confectionery' },
+    { id: 'p22', name: 'Tapioca Chips - Smoky Barbeque', variants: 2, brand: 'Dobra', category: 'Snacks' },
+    { id: 'p23', name: 'Tapioca Chips - Extra Cheesy', variants: 2, brand: 'Dobra', category: 'Snacks' },
+    { id: 'p24', name: 'Tapioca Chips - Garlic Pickle', variants: 2, brand: 'Dobra', category: 'Snacks' },
+    { id: 'p25', name: 'Tapioca Chips - Spicy Kari', variants: 2, brand: 'Dobra', category: 'Snacks' },
+    { id: 'p26', name: 'Tapioca Chips - Desi Wasabi', variants: 2, brand: 'Dobra', category: 'Snacks' },
+    { id: 'p27', name: 'Tapioca Chips - Tangy tomato', variants: 2, brand: 'Dobra', category: 'Snacks' },
+    { id: 'p28', name: 'Tapioca Chips - Plain Salted', variants: 2, brand: 'Dobra', category: 'Snacks' },
 ];
 
 const ProductDetailsStep: React.FC<ProductDetailsStepProps> = ({ formData, updateFormData }) => {
@@ -167,7 +191,7 @@ const ProductDetailsStep: React.FC<ProductDetailsStepProps> = ({ formData, updat
                                 <label className="block text-xs font-medium text-gray-700 mb-1">Select brands</label>
                                 <select className="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm text-gray-500 focus:ring-2 focus:ring-green-500 outline-none appearance-none bg-white">
                                     <option>Select from brands</option>
-                                    <option>Tipsy Tiger</option>
+                                    <option>Dobra</option>
                                 </select>
                             </div>
                             <div>

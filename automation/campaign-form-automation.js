@@ -33,11 +33,11 @@ const campaignConfig = {
     cities: ['Mumbai', 'Bangalore', 'New Delhi'], // Cities to select
 
     // Step 3: Product Details
-    // Available products: 'Tipsy Tiger Fantastic Orange Lemonade', 'Tipsy Tiger Spicy Picante Cocktail Mix', 
-    // 'Tipsy Tiger Premium Tonic Water (Low Calorie & Sugar)', 'Tipsy Tiger Mojito Mocktail Cocktail Mix With Lemon & Mint'
-    products: ['Tipsy Tiger Fantastic Orange Lemonade', 'Tipsy Tiger Spicy Picante Cocktail Mix'], // Products to select by name
+    // Available products: 'Pop Boba - Strawberry', 'Pop Boba - Mango', 
+    // 'Pop Goli - Apple Mojito', 'Coco Poco - Tender Coconut'
+    products: ['Pop Boba - Lychee', 'Coco Poco - Mango'], // Products to select by name
     selectAllProducts: false, // Set to true to select all products
-    brands: ['Tipsy Tiger'], // Filter by brands: Tipsy Tiger
+    brands: ['Dobra'], // Filter by brands: Dobra
     categories: ['Beverages'], // Filter by categories: Beverages
 
     // Step 4: Targeting Options
@@ -285,7 +285,20 @@ async function fillCampaignForm(config, options = {}) {
         // Must use Playwright's click method to trigger React synthetic events
         const keywordsToSelect = config.keywords.length > 0
             ? config.keywords
-            : ['cocktail mixers', 'tonic water']; // Default fallback keywords
+            : ['dobra', 'dobra drinks', 'dobra beverages', 'dobra snacks', 'dobra confentionery', 'boba drink',
+                'pop boba',
+                'fruit boba',
+                'flavoured boba',
+                'goli soda',
+                'pop goli',
+                'flavoured soda',
+                'masala soda',
+                'mango drink',
+                'lychee drink',
+                'strawberry drink',
+                'coconut drink',
+                'tender coconut drink'];
+        // Default fallback keywords
 
         let keywordsSelected = 0;
 
